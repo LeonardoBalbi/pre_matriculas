@@ -133,7 +133,7 @@ Route::get('/email-teste', function () {
     } catch (\Throwable $e) {
         return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
     }
-});
+})->middleware(['auth', 'can:viewNova']);
 
 // Route::get('/matricula', function () {
 //     return redirect()->away('https://mangaratiba.rj.gov.br/pre-matricula/comunicado.html');
@@ -273,7 +273,9 @@ Route::get('pre-matricula/status', [StatusMatriculaController::class, 'index'])-
 Route::post('pre-matricula/confirmar/{id}', [StatusMatriculaController::class, 'confirmar'])->name('pre-matricula.confirmar');
 Route::get('pre-matricula/confirmar/{id}', [StatusMatriculaController::class, 'confirmar'])->middleware('signed')->name('pre-matricula.confirmar.get');
 Route::post('pre-matricula/enviar-whatsapp/{id}', [StatusMatriculaController::class, 'enviarWhatsapp'])->name('pre-matricula.enviar_whatsapp');
-Route::get('pre-matricula/testar-whatsapp/{id}', [StatusMatriculaController::class, 'testarWhatsapp'])->name('pre-matricula.testar_whatsapp');
+Route::get('pre-matricula/testar-whatsapp/{id}', [StatusMatriculaController::class, 'testarWhatsapp'])
+    ->middleware(['auth', 'can:viewNova'])
+    ->name('pre-matricula.testar_whatsapp');
 Route::get('pre-matricula/abrir-whatsapp/{id}', [StatusMatriculaController::class, 'abrirWhatsapp'])->name('pre-matricula.abrir_whatsapp');
 Route::get('api/matricula/status/{protocolo}', [StatusMatriculaController::class, 'apiStatusByProtocol'])->name('api.matricula.status');
 

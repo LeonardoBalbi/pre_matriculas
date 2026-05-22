@@ -5,88 +5,116 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Inscritos</title>
+  <title>Pre-matricula</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="{{ Request::root() }}/bt/css/main.css">
   <style>
+    :root {
+      --ink: #152238;
+      --muted: #64748b;
+      --line: #d8e0ea;
+      --surface: #ffffff;
+      --soft: #f5f8fc;
+      --primary: #0f6cbd;
+      --primary-dark: #084f8f;
+      --success: #147d64;
+      --warning: #a15c00;
+    }
+
     html,
     body {
-      height: 100%
+      min-height: 100%;
     }
 
     body {
-      margin: 0
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
+      margin: 0;
+      color: var(--ink);
       background:
-        radial-gradient(1000px 400px at 10% 10%, rgba(255, 255, 255, .08), transparent 50%),
-        radial-gradient(1000px 400px at 90% 90%, rgba(255, 255, 255, .08), transparent 50%);
-      pointer-events: none;
+        linear-gradient(180deg, #eaf3fb 0, #f7f9fc 360px, #eef2f7 100%);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    .glass-card {
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-radius: 16px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    .glass-card,
+    .smart-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 14px 36px rgba(21, 34, 56, 0.08);
     }
 
     .header-title {
-      color: #fff;
-      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+      color: var(--ink);
+      letter-spacing: 0;
+    }
+
+    .container > h2.header-title {
+      display: none;
     }
 
     .card-header {
-      background: transparent;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-      color: #fff;
-      font-weight: 600
+      background: #fbfdff;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+      font-weight: 700;
+      padding: 1rem 1.25rem;
     }
 
     .form-label {
-      color: #fff;
-      margin-bottom: .5rem
+      color: #25344d;
+      font-size: .88rem;
+      font-weight: 650;
+      margin-bottom: .4rem;
     }
 
     .form-control,
     .form-select {
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      margin-bottom: 1rem
+      min-height: 46px;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      color: var(--ink);
+      margin-bottom: .35rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 .2rem rgba(15, 108, 189, .14);
+    }
+
+    .form-control[readonly] {
+      background: #eef6ff;
+      border-color: #b7d8f7;
+      font-weight: 700;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #1e88e5, #0d47a1);
-      border: 0;
-      box-shadow: 0 10px 24px rgba(13, 71, 161, .35)
+      background: var(--primary);
+      border-color: var(--primary);
+      border-radius: 8px;
+      font-weight: 700;
+      min-height: 44px;
     }
 
     .btn-primary:hover {
-      filter: brightness(1.06)
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
     }
 
     .alert-success {
-      background: rgba(46, 204, 113, 0.18);
-      border-color: rgba(46, 204, 113, 0.38);
-      color: #fff
+      background: #e9f8f3;
+      border-color: #bfe8db;
+      color: #0f5132;
     }
 
     .site-header {
-      position: fixed;
+      position: sticky;
       top: 0;
       left: 0;
       right: 0;
       z-index: 1000;
-      background: rgba(6, 19, 77, 0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2)
+      background: rgba(8, 36, 70, 0.94);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16)
     }
 
     .header-inner {
@@ -97,19 +125,17 @@
     }
 
     .header-logo {
-      height: 80px;
+      height: 64px;
       width: auto
     }
 
     .site-footer {
-      position: fixed;
+      position: relative;
       bottom: 0;
       left: 0;
       right: 0;
       z-index: 1000;
-      background: rgba(6, 19, 77, 0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: #082446;
       border-top: 1px solid rgba(255, 255, 255, 0.2)
     }
 
@@ -132,14 +158,204 @@
     }
 
     .page-main {
-      padding-top: calc(96px + 32px);
-      padding-bottom: calc(64px + 48px);
-      min-height: calc(100vh - 96px - 64px)
+      padding: 28px 0 44px;
+      min-height: calc(100vh - 137px);
+    }
+
+    .form-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: end;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-kicker {
+      color: var(--primary);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .hero-copy {
+      color: var(--muted);
+      margin: .35rem 0 0;
+    }
+
+    .progress-card {
+      min-width: 260px;
+      padding: 1rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .progress {
+      height: .55rem;
+      background: #e2e8f0;
+      border-radius: 999px;
+    }
+
+    .progress-bar {
+      background: var(--success);
+    }
+
+    .form-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .smart-sidebar {
+      position: sticky;
+      top: 96px;
+    }
+
+    .summary-card {
+      padding: 1rem;
+    }
+
+    .summary-title {
+      font-weight: 800;
+      margin-bottom: .8rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: .65rem 0;
+      border-top: 1px solid #edf2f7;
+      font-size: .9rem;
+    }
+
+    .summary-row span:first-child {
+      color: var(--muted);
+    }
+
+    .summary-row strong {
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .smart-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      background: #eef6ff;
+      color: #075985;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .smart-pill.warning {
+      background: #fff7ed;
+      color: var(--warning);
+    }
+
+    .smart-pill.success {
+      background: #e9f8f3;
+      color: var(--success);
+    }
+
+    .step-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+
+    .step-chip {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: .75rem;
+      font-size: .86rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .step-chip.is-active {
+      border-color: #8cc8f6;
+      color: var(--primary-dark);
+      background: #eef6ff;
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+
+    .form-text {
+      color: var(--muted);
+    }
+
+    .field-hint {
+      min-height: 20px;
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .submit-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: flex-end;
+      gap: .75rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(247, 249, 252, .92);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+
+    .is-loading-select {
+      color: var(--muted);
+      background-color: #f8fafc;
+    }
+
+    @media (max-width: 991px) {
+      .form-hero,
+      .form-workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .progress-card {
+        min-width: 0;
+      }
+
+      .smart-sidebar {
+        position: static;
+        order: -1;
+      }
+    }
+
+    @media (max-width: 575px) {
+      .header-logo {
+        height: 48px;
+      }
+
+      .step-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .submit-bar {
+        display: block;
+      }
+
+      .submit-bar .btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 
-<body style="min-height:100vh;background-image:linear-gradient(225deg,rgba(17,60,125,0.35),rgba(6,19,77,0.35));background-repeat:no-repeat;background-attachment:fixed;background-position:center top;background-size:cover;">
+<body>
 
   @php
   $prefillName = '';
@@ -185,8 +401,25 @@
     <script>
       function playErrorBeep(){try{var c=new (window.AudioContext||window.webkitAudioContext)();var o=c.createOscillator();var g=c.createGain();o.type='sine';o.frequency.value=880;o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(0.001,c.currentTime);g.gain.exponentialRampToValueAtTime(0.2,c.currentTime+0.01);o.start();g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.3);o.stop(c.currentTime+0.32)}catch(e){}}
     </script>
-    <div class="container py-4" style="max-width: 960px;">
+    <div class="container py-4" style="max-width: 1180px;">
       <h2 class="h4 mb-0 header-title">Pré-matrícula para o ano letivo de {{ date('Y') }}</h2>
+
+      <section class="form-hero">
+        <div>
+          <div class="hero-kicker">Ano letivo {{ date('Y') }}</div>
+          <h1 class="h3 mb-0 header-title">Pre-matricula</h1>
+          <p class="hero-copy">Preencha os dados do candidato, escolha a unidade e confirme as declaracoes.</p>
+        </div>
+        <div class="progress-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold">Progresso</span>
+            <span class="smart-pill" id="progressLabel">0%</span>
+          </div>
+          <div class="progress" role="progressbar" aria-label="Progresso do formulario" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar" id="formProgress" style="width: 0%"></div>
+          </div>
+        </div>
+      </section>
 
       <div id="sucesso" class="alert alert-success d-none" role="alert">
         <div class="d-flex justify-content-between align-items-center">
@@ -238,6 +471,13 @@
         </div>
       </div>
 
+      <div class="step-strip" aria-label="Etapas do formulario">
+        <div class="step-chip is-active" data-step-chip="candidato">1. Candidato</div>
+        <div class="step-chip" data-step-chip="responsavel">2. Responsavel</div>
+        <div class="step-chip" data-step-chip="confirmacao">3. Confirmacao</div>
+      </div>
+
+      <div class="form-workspace">
       <form id="formInscricao">
         <input type="hidden" name="ano_letivo" id="ano_letivo" value="{{ date('Y') }}">
 

@@ -37,7 +37,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Rhyltonn\\SomaPontosFields\\": "nova-components/soma-pontos-fields/src/"
+            "Rhylton\\Escolas\\": "nova-components/escolas/src/",
+            "Rhyltonn\\SomaPontosFields\\": "nova-components/soma-pontos-fields/src/",
+            "Rhyltonn\\Turmas\\": "nova-components/turmas/src/",
+            "Rhyltonn\\VagasXpFields\\": "nova-components/VagasXpFields/src/"
         }
     },
     "autoload-dev": {

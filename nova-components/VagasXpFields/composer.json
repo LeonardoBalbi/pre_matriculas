@@ -16,7 +16,6 @@
     },
     "extra": {
         "laravel": {
-            "nova": "LA93yK1DAqukjzR7GuUGRmmFh6iyulOz66TCwNUBVQKYYrPfgh",
             "providers": [
                 "Rhyltonn\\VagasXpFields\\FieldServiceProvider"
             ]

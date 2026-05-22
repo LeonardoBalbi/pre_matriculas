@@ -42,12 +42,11 @@ class BasicRoutesTest extends TestCase
     /**
      * Teste para verificar se a rota de pré-matrícula redireciona corretamente.
      */
-    public function test_pre_matricula_redirects(): void
+    public function test_pre_matricula_loads_successfully(): void
     {
         $response = $this->get('/pre-matricula');
         
-        $response->assertStatus(302);
-        $response->assertRedirect('https://mangaratiba.rj.gov.br/pre-matricula-sme/');
+        $response->assertStatus(200);
     }
 
     /**

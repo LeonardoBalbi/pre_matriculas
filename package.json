@@ -7,12 +7,12 @@
         "build-VagasXpFields-prod": "cd nova-components/VagasXpFields && npm run prod",
         "build-vagas-xp-fields": "cd nova-components/VagasXpFields && npm run dev",
         "build-vagas-xp-fields-prod": "cd nova-components/VagasXpFields && npm run prod",
-        "build-soma-pontos-fields": "cd nova-components/SomaPontosFields && npm run dev",
-        "build-soma-pontos-fields-prod": "cd nova-components/SomaPontosFields && npm run prod",
-        "build-escolas": "cd nova-components/Escolas && npm run dev",
-        "build-escolas-prod": "cd nova-components/Escolas && npm run prod",
-        "build-turmas": "cd nova-components/Turmas && npm run dev",
-        "build-turmas-prod": "cd nova-components/Turmas && npm run prod"
+        "build-soma-pontos-fields": "cd nova-components/soma-pontos-fields && npm run dev",
+        "build-soma-pontos-fields-prod": "cd nova-components/soma-pontos-fields && npm run prod",
+        "build-escolas": "cd nova-components/escolas && npm run dev",
+        "build-escolas-prod": "cd nova-components/escolas && npm run prod",
+        "build-turmas": "cd nova-components/turmas && npm run dev",
+        "build-turmas-prod": "cd nova-components/turmas && npm run prod"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^1.0.14",

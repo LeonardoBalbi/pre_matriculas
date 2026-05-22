@@ -175,6 +175,25 @@ class ProcessoSeletivoController extends Controller
 
     public function checkconsulta(Request $request)
    {
-        dd($request->all());        
+        $data = $request->validate([
+            'cpf' => ['required', 'string', 'size:11'],
+            'data_nasc' => ['required', 'date'],
+        ]);
+
+        $candidato = Candidato::where('cpf', $data['cpf'])
+            ->whereDate('data_nasc', $data['data_nasc'])
+            ->latest('id')
+            ->first();
+
+        if (!$candidato) {
+            return back()->withErrors([
+                'cpf' => 'Nenhuma inscricao encontrada para os dados informados.',
+            ])->onlyInput('cpf');
+        }
+
+        return redirect()->route('processo-seletivo.comprovante', [
+            'id' => base64_encode($candidato->id),
+            'tipo' => 'p',
+        ]);
     }
 }
