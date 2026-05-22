@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Matriculas\Tables;
 
 use App\Models\Escola;
+use App\Models\Matricula;
 use App\Models\StatusMatricula;
 use App\Models\TransferLog;
 use App\Models\TransferRequest;
@@ -22,7 +23,10 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Mail;
 use League\Csv\Writer;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -37,8 +41,11 @@ class MatriculasTable
         return $table
             ->columns([
                 TextColumn::make('protocolo')
+                    ->label('Protocolo')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable()
+                    ->copyable(),
                 TextColumn::make('statusMatricula.status_matricula')
                     ->label('Situação')
                     ->badge()
@@ -49,90 +56,170 @@ class MatriculasTable
                         'Pendente' => 'info',
                         default => 'gray',
                     })
+                    ->searchable()
                     ->sortable(),
-                TextColumn::make('ano_letivo'),
+                TextColumn::make('ano_letivo')
+                    ->label('Ano')
+                    ->sortable(),
                 TextColumn::make('data_nascimento')
+                    ->label('Nascimento')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('nome_candidato')
+                    ->label('Candidato')
+                    ->limit(32)
                     ->searchable(),
                 TextColumn::make('cpf_candidato')
+                    ->label('CPF')
+                    ->copyable()
                     ->searchable(),
                 TextColumn::make('escola.escola_nome')
                     ->label('Escola')
+                    ->limit(36)
+                    ->searchable()
                     ->sortable(),
+                TextColumn::make('turma.turma_descricao')
+                    ->label('Turma')
+                    ->placeholder('Sem turma')
+                    ->searchable(),
                 TextColumn::make('turma_id')
+                    ->label('Turma ID')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('observacao')
+                    ->label('Observacao')
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('data_inscricao')
-                    ->dateTime()
+                    ->label('Inscricao')
+                    ->date('d/m/Y')
                     ->sortable(),
+                TextColumn::make('pendencias_operacionais')
+                    ->label('Pendencias')
+                    ->getStateUsing(function ($record): string {
+                        $pendencias = collect([
+                            blank($record->tel_cel_responsavel) ? 'Sem celular' : null,
+                            blank($record->email_responsavel) ? 'Sem e-mail' : null,
+                            blank($record->escola_nome_id) ? 'Sem escola' : null,
+                            blank($record->turma_id) ? 'Sem turma' : null,
+                        ])->filter();
+
+                        return $pendencias->isEmpty() ? 'OK' : $pendencias->join(', ');
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => $state === 'OK' ? 'success' : 'danger')
+                    ->limit(34),
                 TextColumn::make('idade')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('idade_corte_meses')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('idade_data_corte')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('idade_data_corte_mes')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('idade_data_corte_dias')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('sexo')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('irmao_creche')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('irmao_gemeo')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('nome_irmao_gemeo')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('carteira_vacinacao')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('cartao_sus')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('bolsa_familia')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('cad_unico')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('vulneravel_social')
-                    ->badge(),
+                    ->label('Vulneravel social')
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('portador_deficiencia')
-                    ->badge(),
+                    ->label('PCD')
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('deficiencias_tipo')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('tipo_deficiencia_id')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('distrito.distrito')
                     ->label('Distrito')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('endereco')
+                    ->label('Endereco')
+                    ->limit(45)
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                TextColumn::make('bairro_escola.escola_bairro_id')
+                TextColumn::make('bairro_escola.descricao')
                     ->label('Bairro')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('grau_parentesco')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('nome_responsavel')
+                    ->label('Responsavel')
+                    ->limit(28)
                     ->searchable(),
                 TextColumn::make('email_responsavel')
+                    ->label('E-mail')
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('data_nasc_responsavel')
+                    ->label('Nascimento responsavel')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('cpf_responsavel')
+                    ->label('CPF responsavel')
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('rg_responsavel')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('mae_menor')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('escolaridade.escolaridade')
                     ->label('Escolaridade')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('tel_fixo_responsavel')
+                    ->label('Telefone fixo')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('tel_cel_responsavel')
+                    ->label('Celular')
+                    ->copyable()
                     ->searchable(),
                 TextColumn::make('pedido_transferencia')
                     ->searchable(),
