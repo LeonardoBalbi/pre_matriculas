@@ -1,199 +1,125 @@
 @extends('layouts.app')
 
 @section('content')
-    <div x-data="{ showPreloader: true }" x-init="setTimeout(() => showPreloader = false, 500)" class="min-vh-100 d-flex flex-column bg-gradient antialiased text-body font-body">
-        {{-- PRELOADER --}}
-        <div x-show="showPreloader" class="preloader fixed inset-0 z-[100] bg-slate-900/70 flex items-center justify-center">
-            <div class="spinner-border text-light" role="status">
-                <span class="visually-hidden">Carregando...</span>
+@php
+    $totalEscolas = $escolas->count();
+    $distritos = $escolas->pluck('distrito')->filter()->unique()->sort()->values();
+    $bairros = $escolas->pluck('bairro')->filter()->unique()->sort()->values();
+    $heroImage = '/flaro-assets/images/blog/ceim-aarao-de-moura-brito-filho.jpg';
+@endphp
+
+<div class="home-page">
+    <nav class="home-nav">
+        <div class="container nav-inner">
+            <a class="brand-link" href="{{ url('/') }}" aria-label="Inicio">
+                <img src="/img/smeel-branco2.png" onerror="this.src='/img/smeel-branco.png'" alt="Secretaria de Educacao">
+            </a>
+            <div class="nav-links">
+                <a href="#etapas">Etapas</a>
+                <a href="#unidades">Unidades</a>
+                <a href="#publicacao">Publicacao</a>
+                <a href="{{ route('register.pre-matricula.status') }}">Area do candidato</a>
+                <a class="btn btn-light nav-cta" href="/pre-matricula">Fazer inscricao</a>
             </div>
         </div>
+    </nav>
 
-        {{-- NAVBAR --}}
-        <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-lg" style="background: linear-gradient(to right, #4338ca, #6d28d9, #16a34a) !important; z-index: 1050 !important; display: block !important;">
-            <div class="container-fluid px-3 px-md-4">
-                <a class="navbar-brand d-flex align-items-center" href="#">
-                    <img src="/img/smeel-branco2.png" alt="Logo" style="height: 48px !important; width: auto !important;" class="rounded shadow-sm">
-                </a>
+    <header class="hero">
+        <img src="{{ $heroImage }}" alt="Unidade de educacao infantil em Mangaratiba" class="hero-image">
+        <div class="hero-shade"></div>
+        <div class="container hero-content">
+            <div class="hero-copy">
+                <span class="eyebrow">Pre-matricula {{ date('Y') }}</span>
+                <h1>Educacao infantil em Mangaratiba</h1>
+                <p>Consulte as unidades, leia as orientacoes e realize a pre-matricula online com mais clareza e agilidade.</p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary btn-lg" href="/pre-matricula">Iniciar pre-matricula</a>
+                    <a class="btn btn-outline-light btn-lg" href="{{ route('register.pre-matricula.status') }}">Acompanhar inscricao</a>
+                </div>
+            </div>
+            <div class="hero-panel">
+                <div class="metric">
+                    <strong>{{ $totalEscolas }}</strong>
+                    <span>unidades listadas</span>
+                </div>
+                <div class="metric">
+                    <strong>{{ $distritos->count() }}</strong>
+                    <span>distritos atendidos</span>
+                </div>
+                <div class="metric">
+                    <strong>31/03</strong>
+                    <span>data-base de idade</span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Alternar navegação">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse show" id="mainNavbar">
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-lg-3 gap-lg-3">
-                        <li class="nav-item"><a class="nav-link text-white fw-bold active" style="font-size: 1rem !important; opacity: 1 !important; visibility: visible !important;" href="#Etapas">Etapas</a></li>
-                        <li class="nav-item"><a class="nav-link text-white fw-bold active" style="font-size: 1rem !important; opacity: 1 !important; visibility: visible !important;" href="#duvidas">Dúvidas</a></li>
-                        <li class="nav-item"><a class="nav-link text-white fw-bold active" style="font-size: 1rem !important; opacity: 1 !important; visibility: visible !important;" href="#UnidadesEscolares">Unidades</a></li>
-                        <li class="nav-item"><a class="nav-link text-white fw-bold active" style="font-size: 1rem !important; opacity: 1 !important; visibility: visible !important;" href="#contatos">Contatos</a></li>
-                        <li class="nav-item"><a class="nav-link text-white fw-bold active" style="font-size: 1rem !important; opacity: 1 !important; visibility: visible !important;" href="#publicacao">Publicação</a></li>
-                        <li class="nav-item"><a class="nav-link text-white fw-bold active" style="font-size: 1rem !important; opacity: 1 !important; visibility: visible !important;" href="{{ route('register.pre-matricula.status') }}">Área do candidato</a></li>
-                    </ul>
-
-                    <a href="/pre-matricula"
-                       class="btn text-white d-inline-block px-4 py-2"
-                       style="background: linear-gradient(to right, #4ade80, #3b82f6) !important; border: none !important; border-radius: 9999px !important; font-weight: bold !important; visibility: visible !important; display: inline-block !important;">
-                        Fazer Inscrição Online
+    <main>
+        <section id="publicacao" class="section publication-section">
+            <div class="container section-grid">
+                <div>
+                    <span class="section-kicker">Informacao oficial</span>
+                    <h2>Publicacoes e edital</h2>
+                    <p class="section-text">Acompanhe comunicados, editais e orientacoes publicados pela Prefeitura de Mangaratiba.</p>
+                </div>
+                <div class="publication-card">
+                    <strong>Pre-matricula</strong>
+                    <p>Leia as informacoes oficiais antes de preencher o formulario.</p>
+                    <a href="https://prefeitura.mangaratiba.rj.gov.br/pre-matricula/" target="_blank" rel="noopener" class="btn btn-outline-primary">
+                        Abrir publicacao
                     </a>
                 </div>
             </div>
-        </nav>
-
-        {{-- HERO COM VÍDEO --}}
-        <section class="hero-section d-flex align-items-center justify-content-center text-center text-white relative h-screen">
-            <video class="absolute inset-0 w-full h-full object-cover brightness-75" autoplay muted loop>
-                <source src="/flaro-assets/fundo.mp4" type="video/mp4">
-            </video>
-            <div class="relative z-10 flex flex-col items-center gap-8 px-4">
-                <h1 class="text-white text-5xl md:text-7xl font-extrabold bg-gradient-to-r from-blue-500 via-purple-500 to-green-400 bg-clip-text text-transparent drop-shadow-lg text-center leading-tight">
-                    Pré Matrícula
-                </h1>
-                <a href="/pre-matricula" class="px-10 py-4 bg-gradient-to-r from-green-400 to-blue-500 text-white font-bold rounded-full shadow-xl text-xl hover:scale-105 hover:from-green-500 hover:to-blue-600 transition-all duration-200 no-underline">
-                    Fazer Inscrição
-                </a>
-            </div>
         </section>
 
-        {{-- PUBLICAÇÕES --}}
-        <section id="publicacao" class="py-5 bg-white">
-            <div class="container text-center">
-                <h2 class="display-6 fw-bold text-gradient-title mb-3">Publicações</h2>
-                <p class="text-muted mb-4 fw-medium">
-                    Acompanhe comunicados, editais e informações oficiais.
-                </p>
-                <a href="https://prefeitura.mangaratiba.rj.gov.br/pre-matricula/"
-                   target="_blank" rel="noopener noreferrer"
-                   class="btn btn-primary">
-                    Pré-matrícula — Prefeitura de Mangaratiba
-                </a>
-            </div>
-        </section>
-
-        {{-- ETAPAS DA PRÉ-MATRÍCULA --}}
-        <div id="Etapas"></div>
-        <div id="duvidas"></div>
-        <section class="py-5 bg-gradient-soft">
-            <div class="container text-center text-dark">
-                <div class="mx-auto mb-5" style="max-width: 800px;">
-                    <h2 class="display-6 fw-bold text-gradient-title mb-3">
-                        Etapas da Pré-matrícula
-                    </h2>
+        <section id="etapas" class="section">
+            <div class="container">
+                <div class="section-heading">
+                    <span class="section-kicker">Como funciona</span>
+                    <h2>Etapas da pre-matricula</h2>
+                    <p>O processo organiza inscricao, analise e efetivacao da matricula conforme os criterios do edital.</p>
                 </div>
 
-                <div class="row g-4 justify-content-center">
-                    <div class="col-md-6">
-                        <div class="card h-100 shadow-lg border-0">
-                            <div class="card-body p-4 text-start">
-                                <h3 class="h5 fw-semibold text-primary mb-3">
-                                    Creche: 6 meses a 03 anos
-                                </h3>
-                                <ul class="ps-3">
-                                    <li class="mb-2">
-                                        É a primeira etapa da Educação Infantil e não é obrigatória por lei (LEI 9394/96).
-                                    </li>
-                                    <li class="mb-2">
-                                        Em Mangaratiba essa etapa é oferecida nos Centros de Educação Infantil Municipal – CEIMs.
-                                    </li>
-                                    <li class="mb-2">
-                                        Esta etapa tem Critérios de seleção próprios de Pré-Matrícula, Matrícula e outros procedimentos.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100 shadow-lg border-0">
-                            <div class="card-body p-4 text-start">
-                                <h3 class="h5 fw-semibold text-purple mb-3">
-                                    Pré-Escola: 04 a 05 anos
-                                </h3>
-                                <ul class="ps-3">
-                                    <li class="mb-2">
-                                        É a segunda etapa da Educação Infantil e é obrigatória por lei.
-                                    </li>
-                                    <li class="mb-2">
-                                        Em Mangaratiba essa etapa é oferecida nas escolas que atendem essa faixa etária.
-                                    </li>
-                                    <li class="mb-2">
-                                        Obs.: Nessa etapa Não haverá Pré-Matrícula para os CEIMs.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                <div class="track-grid">
+                    <article class="track-card">
+                        <h3>Creche: 6 meses a 3 anos</h3>
+                        <p>Atendimento nos CEIMs com criterios proprios de selecao, documentacao e acompanhamento.</p>
+                    </article>
+                    <article class="track-card">
+                        <h3>Pre-escola: 4 a 5 anos</h3>
+                        <p>Etapa obrigatoria da Educacao Infantil, atendida pelas unidades que oferecem essa faixa etaria.</p>
+                    </article>
                 </div>
 
-                {{-- Cards das etapas (1 a 5) --}}
-                <div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
-                    @php
-                        $etapas = [
-                            [
-                                'etapa' => '1',
-                                'titulo' => 'Pré-Matrícula',
-                                'descricao' => 'Ler o edital, preencher corretamente a ficha e imprimir o protocolo.',
-                                'bg' => 'bg-primary',
-                            ],
-                            [
-                                'etapa' => '2',
-                                'titulo' => 'Entrega de Documentos',
-                                'descricao' => 'Entrega da documentação exigida em caso de vulnerabilidade ou deficiência, conforme edital.',
-                                'bg' => 'bg-purple',
-                            ],
-                            [
-                                'etapa' => '3',
-                                'titulo' => 'Classificação',
-                                'descricao' => 'Classificação eletrônica respeitando critérios de prioridade e capacidade das turmas.',
-                                'bg' => 'bg-success',
-                            ],
-                            [
-                                'etapa' => '4',
-                                'titulo' => 'Matrícula',
-                                'descricao' => 'Efetivação da matrícula no CEIM classificado após conferência de documentos.',
-                                'bg' => 'bg-primary-dark',
-                            ],
-                            [
-                                'etapa' => '5',
-                                'titulo' => 'Parabéns!',
-                                'descricao' => 'Agradecimento pela confiança no sistema de ensino do município.',
-                                'bg' => 'bg-success-dark',
-                            ],
-                        ];
-                    @endphp
-
-                    @foreach ($etapas as $etapa)
-                        <div class="col">
-                            <div class="card h-100 shadow-lg border-0 text-center p-4">
-                                <div class="d-flex align-items-center justify-content-center rounded-circle mb-3 etapa-circle {{ $etapa['bg'] }}">
-                                    <span class="fw-bold text-white fs-4">{{ $etapa['etapa'] }}</span>
-                                </div>
-                                <h3 class="h5 fw-bold mb-2">{{ $etapa['titulo'] }}</h3>
-                                <p class="text-muted mb-0">{{ $etapa['descricao'] }}</p>
-                            </div>
-                        </div>
+                <div class="steps-grid">
+                    @foreach ([
+                        ['1', 'Pre-matricula', 'Preencha a ficha online e guarde o protocolo.'],
+                        ['2', 'Documentos', 'Entregue os documentos exigidos quando solicitado.'],
+                        ['3', 'Classificacao', 'A classificacao considera criterios do edital e vagas disponiveis.'],
+                        ['4', 'Matricula', 'Efetive a matricula na unidade classificada apos a validacao.'],
+                        ['5', 'Acompanhamento', 'Consulte o status pelo protocolo ou CPF do candidato.'],
+                    ] as $step)
+                        <article class="step-card">
+                            <span>{{ $step[0] }}</span>
+                            <h3>{{ $step[1] }}</h3>
+                            <p>{{ $step[2] }}</p>
+                        </article>
                     @endforeach
                 </div>
             </div>
         </section>
 
-        {{-- UNIDADES ESCOLARES --}}
-        <section id="UnidadesEscolares" class="pt-5 pb-5 bg-gradient-soft-2">
+        <section id="unidades" class="section units-section">
             <div class="container">
-                <h2 class="display-5 fw-bold text-gradient-title text-center mb-3">
-                    Unidades Escolares
-                </h2>
-                <p class="text-center text-muted mb-4">
-                    Centros de Educação Infantil Municipal – CEIMs.
-                </p>
+                <div class="section-heading">
+                    <span class="section-kicker">Rede municipal</span>
+                    <h2>Unidades escolares</h2>
+                    <p>Filtre por distrito ou bairro e veja os dados principais de cada unidade.</p>
+                </div>
 
-                {{-- Filtros --}}
-                @php
-                    $distritos = $escolas->pluck('distrito')->filter()->unique()->sort()->values();
-                    $bairros = $escolas->pluck('bairro')->filter()->unique()->sort()->values();
-                @endphp
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Distrito</label>
+                <div class="filter-panel">
+                    <div>
+                        <label class="form-label" for="filtroDistrito">Distrito</label>
                         <select id="filtroDistrito" class="form-select">
                             <option value="">Todos</option>
                             @foreach($distritos as $distrito)
@@ -201,8 +127,8 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Bairro</label>
+                    <div>
+                        <label class="form-label" for="filtroBairro">Bairro</label>
                         <select id="filtroBairro" class="form-select">
                             <option value="">Todos</option>
                             @foreach($bairros as $bairro)
@@ -210,293 +136,643 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button id="btnLimparFiltros" class="btn btn-outline-primary w-100">
-                            Limpar filtros
-                        </button>
+                    <div class="filter-actions">
+                        <button id="btnLimparFiltros" class="btn btn-outline-secondary" type="button">Limpar</button>
                     </div>
                 </div>
 
-                {{-- Grid de unidades --}}
-                <div class="row g-4" id="gridUnidades">
+                <div class="unit-count" id="unitCount">{{ $totalEscolas }} unidades encontradas</div>
+
+                <div class="units-grid" id="gridUnidades">
                     @foreach($escolas as $unidade)
-                        <div class="col-md-6 col-lg-4 unidade-item"
-                             data-distrito="{{ $unidade['distrito'] ?? '' }}"
-                             data-bairro="{{ $unidade['bairro'] ?? '' }}">
-                            <div class="card h-100 shadow-sm unidade-card"
-                                 data-id="{{ $unidade['id'] }}"
-                                 data-nome="{{ $unidade['nome'] }}"
-                                 data-endereco="{{ $unidade['endereco'] ?? '' }}"
-                                 data-img="{{ $unidade['foto_url'] ?? '/images/icons/favicon.ico' }}"
-                                 data-distrito="{{ $unidade['distrito'] ?? '' }}"
-                                 data-bairro="{{ $unidade['bairro'] ?? '' }}">
-                                <img src="{{ $unidade['foto_url'] ?? '/images/icons/favicon.ico' }}"
-                                     class="card-img-top unidade-img"
-                                     alt="{{ $unidade['nome'] }}"
-                                     onerror="this.src='/images/icons/favicon.ico'">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title text-primary fw-bold">{{ $unidade['nome'] }}</h5>
-                                    <p class="card-text text-muted small mb-0">{{ $unidade['endereco'] ?? '' }}</p>
-                                </div>
-                            </div>
-                        </div>
+                        <article class="unit-card unidade-item"
+                            data-distrito="{{ $unidade['distrito'] ?? '' }}"
+                            data-bairro="{{ $unidade['bairro'] ?? '' }}">
+                            <button type="button"
+                                class="unit-card-button unidade-card"
+                                data-id="{{ $unidade['id'] }}"
+                                data-nome="{{ $unidade['nome'] }}"
+                                data-endereco="{{ $unidade['endereco'] ?? '' }}"
+                                data-img="{{ $unidade['foto_url'] ?? '/flaro-assets/images/blog/ceim-aarao-de-moura-brito-filho.jpg' }}"
+                                data-distrito="{{ $unidade['distrito'] ?? '' }}"
+                                data-bairro="{{ $unidade['bairro'] ?? '' }}">
+                                <img src="{{ $unidade['foto_url'] ?? '/flaro-assets/images/blog/ceim-aarao-de-moura-brito-filho.jpg' }}"
+                                    alt="{{ $unidade['nome'] }}"
+                                    onerror="this.src='/flaro-assets/images/blog/ceim-aarao-de-moura-brito-filho.jpg'">
+                                <span class="unit-body">
+                                    <strong>{{ $unidade['nome'] }}</strong>
+                                    <small>{{ $unidade['endereco'] ?? 'Endereco nao informado' }}</small>
+                                    <span class="unit-meta">
+                                        {{ $unidade['bairro'] ?? 'Bairro nao informado' }}
+                                        @if(!empty($unidade['distrito']))
+                                            · {{ $unidade['distrito'] }}
+                                        @endif
+                                    </span>
+                                </span>
+                            </button>
+                        </article>
                     @endforeach
                 </div>
             </div>
         </section>
+    </main>
 
-        {{-- MODAL UNIDADE --}}
-        <div class="modal fade" id="unidadeModal" tabindex="-1" aria-labelledby="unidadeModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="unidadeModalLabel">Unidade Escolar</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                    </div>
-                    <div class="modal-body">
-                        <img id="unidadeImg" src="" alt="" class="img-fluid rounded mb-3 d-none">
-                        <h4 id="unidadeNome" class="fw-bold text-primary mb-2"></h4>
-                        <p class="mb-1"><strong>Endereço:</strong> <span id="unidadeEndereco"></span></p>
-                        <p class="mb-0 d-none" id="unidadeDistritoRow">
-                            <strong>Distrito:</strong> <span id="unidadeDistrito"></span>
-                        </p>
-                        <p class="mb-0 d-none" id="unidadeBairroRow">
-                            <strong>Bairro:</strong> <span id="unidadeBairro"></span>
-                        </p>
-                    </div>
+    <div class="modal fade" id="unidadeModal" tabindex="-1" aria-labelledby="unidadeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content unit-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="unidadeModalLabel">Unidade escolar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="unidadeImg" src="" alt="" class="modal-unit-img d-none">
+                    <h4 id="unidadeNome" class="fw-bold mb-2"></h4>
+                    <p class="mb-2"><strong>Endereco:</strong> <span id="unidadeEndereco"></span></p>
+                    <p class="mb-1 d-none" id="unidadeDistritoRow"><strong>Distrito:</strong> <span id="unidadeDistrito"></span></p>
+                    <p class="mb-0 d-none" id="unidadeBairroRow"><strong>Bairro:</strong> <span id="unidadeBairro"></span></p>
                 </div>
             </div>
         </div>
-
-        {{-- RODAPÉ --}}
-        <footer id="contatos" class="footer-gradient text-white py-4 mt-auto">
-            <div class="container text-center">
-                <p class="mb-2">
-                    Endereço: Praça Robert Simões, nº 92 - Mangaratiba - RJ<br>
-                    Ramal da Sec. de Educação: 280
-                </p>
-                <p class="mb-0 small">
-                    © 2025 Todos os direitos reservados: Secretaria de Ciência.
-                </p>
-            </div>
-        </footer>
     </div>
 
-    {{-- SCRIPTS ESPECÍFICOS --}}
-    @push('scripts')
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <script src="{{ asset('js/bot_educacao.js') }}"></script>
-        <script>
-            (function () {
-                const btnInscricao = document.getElementById('btnInscricao');
-                if (btnInscricao) {
-                    btnInscricao.addEventListener('click', function () {
-                        window.location.href = '/pre-matricula';
-                    });
-                }
-
-                // Manutenção (replica lógica do Vue)
-                setInterval(async function () {
-                    try {
-                        const resp = await fetch('/manutencao-status');
-                        const data = await resp.json();
-                        if (data.ativo) {
-                            window.location.href = '/manutencao';
-                        }
-                    } catch (e) {
-                        // silencioso
-                    }
-                }, 2000);
-
-                // Filtros e modal das unidades escolares (dados já carregados via PHP)
-                const grid = document.getElementById('gridUnidades');
-                const filtroDistrito = document.getElementById('filtroDistrito');
-                const filtroBairro = document.getElementById('filtroBairro');
-                const btnLimparFiltros = document.getElementById('btnLimparFiltros');
-
-                function filtrarUnidades() {
-                    if (!grid) return;
-                    const distritoSelecionado = filtroDistrito ? filtroDistrito.value : '';
-                    const bairroSelecionado = filtroBairro ? filtroBairro.value : '';
-
-                    const itens = grid.querySelectorAll('.unidade-item');
-                    itens.forEach(item => {
-                        const distrito = item.getAttribute('data-distrito') || '';
-                        const bairro = item.getAttribute('data-bairro') || '';
-
-                        const okDistrito = !distritoSelecionado || distrito === distritoSelecionado;
-                        const okBairro = !bairroSelecionado || bairro === bairroSelecionado;
-
-                        if (okDistrito && okBairro) {
-                            item.style.display = '';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                }
-
-                if (filtroDistrito) {
-                    filtroDistrito.addEventListener('change', filtrarUnidades);
-                }
-                if (filtroBairro) {
-                    filtroBairro.addEventListener('change', filtrarUnidades);
-                }
-                if (btnLimparFiltros) {
-                    btnLimparFiltros.addEventListener('click', () => {
-                        if (filtroDistrito) filtroDistrito.value = '';
-                        if (filtroBairro) filtroBairro.value = '';
-                        filtrarUnidades();
-                    });
-                }
-
-                // Modal de detalhes
-                const cards = document.querySelectorAll('.unidade-card');
-                cards.forEach(card => {
-                    card.addEventListener('click', function() {
-                        const modalEl = document.getElementById('unidadeModal');
-                        if (!modalEl) return;
-
-                        document.getElementById('unidadeNome').textContent = this.getAttribute('data-nome') || '';
-                        document.getElementById('unidadeEndereco').textContent = this.getAttribute('data-endereco') || '';
-
-                        const imgEl = document.getElementById('unidadeImg');
-                        const imgSrc = this.getAttribute('data-img');
-                        if (imgSrc) {
-                            imgEl.src = imgSrc;
-                            imgEl.classList.remove('d-none');
-                        } else {
-                            imgEl.classList.add('d-none');
-                        }
-
-                        const distritoRow = document.getElementById('unidadeDistritoRow');
-                        const bairroRow = document.getElementById('unidadeBairroRow');
-                        const distritoSpan = document.getElementById('unidadeDistrito');
-                        const bairroSpan = document.getElementById('unidadeBairro');
-
-                        const distrito = this.getAttribute('data-distrito');
-                        const bairro = this.getAttribute('data-bairro');
-
-                        if (distrito) {
-                            distritoSpan.textContent = distrito;
-                            distritoRow.classList.remove('d-none');
-                        } else {
-                            distritoRow.classList.add('d-none');
-                        }
-                        if (bairro) {
-                            bairroSpan.textContent = bairro;
-                            bairroRow.classList.remove('d-none');
-                        } else {
-                            bairroRow.classList.add('d-none');
-                        }
-
-                        const modal = new bootstrap.Modal(modalEl);
-                        modal.show();
-                    });
-                });
-            })();
-        </script>
-    @endpush
-
-@push('scripts')
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="{{ asset('js/bot_educacao.js') }}"></script>
-@endpush
+    <footer id="contatos" class="home-footer">
+        <div class="container footer-inner">
+            <div>
+                <strong>Secretaria Municipal de Educacao</strong>
+                <span>Praca Robert Simoes, nº 92 - Mangaratiba - RJ</span>
+            </div>
+            <a href="/pre-matricula" class="btn btn-light">Fazer inscricao</a>
+        </div>
+    </footer>
+</div>
 @endsection
 
+@push('scripts')
+<script>
+    (function () {
+        setInterval(async function () {
+            try {
+                const resp = await fetch('/manutencao-status');
+                const data = await resp.json();
+                if (data.ativo) {
+                    window.location.href = '/manutencao';
+                }
+            } catch (e) {}
+        }, 5000);
+
+        const grid = document.getElementById('gridUnidades');
+        const filtroDistrito = document.getElementById('filtroDistrito');
+        const filtroBairro = document.getElementById('filtroBairro');
+        const btnLimparFiltros = document.getElementById('btnLimparFiltros');
+        const unitCount = document.getElementById('unitCount');
+
+        function filtrarUnidades() {
+            if (!grid) return;
+
+            const distritoSelecionado = filtroDistrito ? filtroDistrito.value : '';
+            const bairroSelecionado = filtroBairro ? filtroBairro.value : '';
+            const itens = grid.querySelectorAll('.unidade-item');
+            let visiveis = 0;
+
+            itens.forEach(item => {
+                const distrito = item.getAttribute('data-distrito') || '';
+                const bairro = item.getAttribute('data-bairro') || '';
+                const okDistrito = !distritoSelecionado || distrito === distritoSelecionado;
+                const okBairro = !bairroSelecionado || bairro === bairroSelecionado;
+                const mostrar = okDistrito && okBairro;
+
+                item.hidden = !mostrar;
+                if (mostrar) visiveis++;
+            });
+
+            if (unitCount) {
+                unitCount.textContent = visiveis + (visiveis === 1 ? ' unidade encontrada' : ' unidades encontradas');
+            }
+        }
+
+        if (filtroDistrito) filtroDistrito.addEventListener('change', filtrarUnidades);
+        if (filtroBairro) filtroBairro.addEventListener('change', filtrarUnidades);
+        if (btnLimparFiltros) {
+            btnLimparFiltros.addEventListener('click', () => {
+                if (filtroDistrito) filtroDistrito.value = '';
+                if (filtroBairro) filtroBairro.value = '';
+                filtrarUnidades();
+            });
+        }
+
+        document.querySelectorAll('.unidade-card').forEach(card => {
+            card.addEventListener('click', function () {
+                const modalEl = document.getElementById('unidadeModal');
+                if (!modalEl) return;
+
+                document.getElementById('unidadeNome').textContent = this.getAttribute('data-nome') || '';
+                document.getElementById('unidadeEndereco').textContent = this.getAttribute('data-endereco') || 'Endereco nao informado';
+
+                const imgEl = document.getElementById('unidadeImg');
+                const imgSrc = this.getAttribute('data-img');
+                if (imgSrc) {
+                    imgEl.src = imgSrc;
+                    imgEl.alt = this.getAttribute('data-nome') || 'Unidade escolar';
+                    imgEl.classList.remove('d-none');
+                } else {
+                    imgEl.classList.add('d-none');
+                }
+
+                const distrito = this.getAttribute('data-distrito');
+                const bairro = this.getAttribute('data-bairro');
+                const distritoRow = document.getElementById('unidadeDistritoRow');
+                const bairroRow = document.getElementById('unidadeBairroRow');
+
+                document.getElementById('unidadeDistrito').textContent = distrito || '';
+                document.getElementById('unidadeBairro').textContent = bairro || '';
+                distritoRow.classList.toggle('d-none', !distrito);
+                bairroRow.classList.toggle('d-none', !bairro);
+
+                new bootstrap.Modal(modalEl).show();
+            });
+        });
+    })();
+</script>
+@endpush
+
 @push('styles')
-    <style>
-        .bg-gradient {
-            background: linear-gradient(135deg, #e0e7ff, #ede9fe, #dcfce7);
+<style>
+    :root {
+        --ink: #132238;
+        --muted: #64748b;
+        --line: #d8e0ea;
+        --surface: #ffffff;
+        --soft: #f5f8fc;
+        --primary: #0f6cbd;
+        --primary-dark: #084f8f;
+        --success: #147d64;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        color: var(--ink);
+        background: #f5f8fc;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .home-page {
+        min-height: 100vh;
+        background: #f5f8fc;
+    }
+
+    .home-nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(8, 36, 70, .96);
+        border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+
+    .nav-inner {
+        min-height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .brand-link img {
+        height: 54px;
+        width: auto;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .nav-links a:not(.btn) {
+        color: rgba(255,255,255,.86);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: .92rem;
+    }
+
+    .nav-links a:not(.btn):hover {
+        color: #fff;
+    }
+
+    .nav-cta {
+        font-weight: 800;
+        border-radius: 8px;
+    }
+
+    .hero {
+        position: relative;
+        min-height: 680px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background: #082446;
+    }
+
+    .hero-image,
+    .hero-shade {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .hero-image {
+        object-fit: cover;
+    }
+
+    .hero-shade {
+        background: linear-gradient(90deg, rgba(8,36,70,.92) 0%, rgba(8,36,70,.72) 48%, rgba(8,36,70,.24) 100%);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        align-items: center;
+        gap: 2rem;
+        color: #fff;
+        padding: 5rem 12px 6rem;
+    }
+
+    .hero-copy {
+        max-width: 720px;
+    }
+
+    .eyebrow,
+    .section-kicker {
+        display: inline-block;
+        color: #6ee7b7;
+        font-size: .82rem;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        margin-bottom: .75rem;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.6rem, 7vw, 5.8rem);
+        line-height: .98;
+        letter-spacing: 0;
+        font-weight: 900;
+        margin-bottom: 1rem;
+    }
+
+    .hero p {
+        max-width: 600px;
+        color: rgba(255,255,255,.86);
+        font-size: 1.15rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 800;
+        min-height: 44px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    .hero-panel {
+        display: grid;
+        gap: .75rem;
+        padding: 1rem;
+        background: rgba(255,255,255,.94);
+        border: 1px solid rgba(255,255,255,.7);
+        border-radius: 8px;
+        box-shadow: 0 18px 44px rgba(0,0,0,.2);
+        color: var(--ink);
+    }
+
+    .metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: .9rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .metric strong {
+        font-size: 1.55rem;
+    }
+
+    .metric span {
+        color: var(--muted);
+        font-weight: 700;
+        text-align: right;
+    }
+
+    .section {
+        padding: 72px 0;
+    }
+
+    .publication-section {
+        background: #fff;
+    }
+
+    .section-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .section h2,
+    .section-heading h2 {
+        font-weight: 900;
+        letter-spacing: 0;
+        margin-bottom: .75rem;
+    }
+
+    .section-text,
+    .section-heading p {
+        color: var(--muted);
+        max-width: 720px;
+    }
+
+    .publication-card,
+    .track-card,
+    .step-card,
+    .filter-panel,
+    .unit-card-button,
+    .unit-modal {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 14px 34px rgba(21,34,56,.07);
+    }
+
+    .publication-card {
+        padding: 1.25rem;
+    }
+
+    .publication-card p {
+        color: var(--muted);
+        margin: .35rem 0 1rem;
+    }
+
+    .section-heading {
+        max-width: 780px;
+        margin-bottom: 2rem;
+    }
+
+    .track-grid,
+    .steps-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .track-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: 1rem;
+    }
+
+    .track-card {
+        padding: 1.25rem;
+    }
+
+    .track-card h3,
+    .step-card h3 {
+        font-size: 1.05rem;
+        font-weight: 900;
+    }
+
+    .track-card p,
+    .step-card p {
+        color: var(--muted);
+        margin-bottom: 0;
+    }
+
+    .steps-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .step-card {
+        padding: 1rem;
+    }
+
+    .step-card span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #e9f8f3;
+        color: var(--success);
+        font-weight: 900;
+        margin-bottom: .75rem;
+    }
+
+    .units-section {
+        background: #eef4fb;
+    }
+
+    .filter-panel {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+        gap: 1rem;
+        align-items: end;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        color: #25344d;
+        font-weight: 800;
+        font-size: .88rem;
+    }
+
+    .form-select {
+        min-height: 46px;
+        border-radius: 8px;
+        border-color: #cbd5e1;
+    }
+
+    .unit-count {
+        color: var(--muted);
+        font-weight: 800;
+        margin: 1rem 0;
+    }
+
+    .units-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .unit-card-button {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        text-align: left;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .unit-card-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 38px rgba(21,34,56,.12);
+    }
+
+    .unit-card-button img {
+        width: 100%;
+        height: 190px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .unit-body {
+        display: grid;
+        gap: .35rem;
+        padding: 1rem;
+    }
+
+    .unit-body strong {
+        color: var(--primary-dark);
+        font-size: 1rem;
+    }
+
+    .unit-body small,
+    .unit-meta {
+        color: var(--muted);
+    }
+
+    .unit-meta {
+        font-size: .84rem;
+        font-weight: 800;
+    }
+
+    .modal-unit-img {
+        width: 100%;
+        max-height: 360px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .home-footer {
+        background: #082446;
+        color: #fff;
+        padding: 1.25rem 0;
+    }
+
+    .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .footer-inner span {
+        display: block;
+        color: rgba(255,255,255,.78);
+    }
+
+    @media (max-width: 991px) {
+        .footer-inner {
+            flex-direction: column;
+            align-items: stretch;
         }
-        .bg-gradient-nav {
-            background: linear-gradient(90deg, #4338ca, #6d28d9, #16a34a);
+
+        .nav-inner {
+            min-height: 72px;
+            align-items: center;
         }
-        .bg-gradient-soft {
-            background: linear-gradient(135deg, #dbeafe, #ede9fe, #dcfce7);
+
+        .brand-link img {
+            height: 44px;
         }
-        .bg-gradient-soft-2 {
-            background: linear-gradient(135deg, #bfdbfe, #e9d5ff, #bbf7d0);
+
+        .nav-links {
+            flex: 1;
+            min-width: 0;
+            overflow-x: auto;
+            gap: .75rem;
+            padding-bottom: .25rem;
+            scrollbar-width: none;
         }
-        .footer-gradient {
-            background: linear-gradient(90deg, #4338ca, #6d28d9, #16a34a);
+
+        .nav-links::-webkit-scrollbar {
+            display: none;
         }
-        .logo-img {
-            height: 48px;
-            width: auto;
-            border-radius: .5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.25);
+
+        .nav-links a:not(.btn) {
+            white-space: nowrap;
         }
-        .btn-inscricao {
-            background: linear-gradient(90deg, #22c55e, #3b82f6);
-            color: #fff;
-            font-weight: 700;
-            border-radius: 999px;
-            box-shadow: 0 .5rem 1rem rgba(0,0,0,.25);
-            border: none;
+
+        .nav-cta {
+            white-space: nowrap;
         }
-        .btn-inscricao:hover {
-            transform: scale(1.03);
-            background: linear-gradient(90deg, #16a34a, #2563eb);
-            color: #fff;
+
+        .hero {
+            min-height: auto;
         }
-        .hero-section {
-            position: relative;
-            min-height: 100vh;
-            margin-top: 56px; /* altura aproximada da navbar */
+
+        .hero-content,
+        .section-grid,
+        .track-grid,
+        .filter-panel {
+            grid-template-columns: 1fr;
         }
-        .hero-video {
-            position: absolute;
-            inset: 0;
+
+        .steps-grid,
+        .units-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .hero-shade {
+            background: rgba(8,36,70,.76);
+        }
+    }
+
+    @media (max-width: 575px) {
+        .steps-grid,
+        .units-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .nav-inner {
+            align-items: flex-start;
+        }
+
+        .nav-links {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(.75);
         }
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(15,23,42,.6), rgba(30,64,175,.4));
+
+        .hero-actions .btn {
+            width: 100%;
         }
-        .hero-content {
-            position: relative;
-            z-index: 2;
+
+        .section {
+            padding: 52px 0;
         }
-        .text-gradient {
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #22c55e);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .text-gradient-title {
-            background: linear-gradient(90deg, #1d4ed8, #7e22ce, #15803d);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .bg-purple { background-color: #7c3aed; }
-        .bg-primary-dark { background-color: #1d4ed8; }
-        .bg-success-dark { background-color: #166534; }
-        .etapa-circle {
-            width: 64px;
-            height: 64px;
-        }
-        .unidade-img {
-            height: 190px;
-            object-fit: cover;
-        }
-        .unidade-card {
-            cursor: pointer;
-            transition: transform .2s ease, box-shadow .2s ease;
-        }
-        .unidade-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.15);
-        }
-        .preloader {
-            position: fixed;
-            inset: 0;
-            background: rgba(15,23,42,.7);
-            z-index: 1055;
-        }
-    </style>
+    }
+</style>
 @endpush

@@ -26,15 +26,21 @@ use App\Models\StatusMatricula;
 
 // Route::get('/', [ProcessoSeletivoController::class, 'index']);
 Route::get('/', function () {
+    $storage = \Illuminate\Support\Facades\Storage::disk('public');
+
     $escolas = \App\Models\Escola::with(['bairro', 'distrito'])
         ->select('id', 'escola_nome', 'escola_endereco', 'escola_foto', 'escola_bairro_id', 'escola_distrito_id')
         ->get()
-        ->map(function ($e) {
+        ->map(function ($e) use ($storage) {
+            $fotoUrl = ($e->escola_foto && $storage->exists($e->escola_foto))
+                ? $storage->url($e->escola_foto)
+                : null;
+
             return [
                 'id' => $e->id,
                 'nome' => $e->escola_nome,
                 'endereco' => $e->escola_endereco,
-                'foto_url' => $e->escola_foto ? \Illuminate\Support\Facades\Storage::disk('public')->url($e->escola_foto) : null,
+                'foto_url' => $fotoUrl,
                 'bairro' => $e->bairro ? $e->bairro->descricao : null,
                 'distrito' => $e->distrito ? $e->distrito->distrito : null,
             ];

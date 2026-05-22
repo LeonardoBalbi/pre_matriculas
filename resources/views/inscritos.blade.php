@@ -481,7 +481,7 @@
       <form id="formInscricao">
         <input type="hidden" name="ano_letivo" id="ano_letivo" value="{{ date('Y') }}">
 
-        <div class="card glass-card mb-3">
+        <div class="card smart-card mb-3" data-form-section="candidato">
           <div class="card-header">Dados do Candidato</div>
           <div class="card-body">
             <div class="row gy-6 gx-6">
@@ -634,7 +634,7 @@
           </div>
         </div>
 
-        <div class="card glass-card mb-3">
+        <div class="card smart-card mb-3" data-form-section="responsavel">
           <div class="card-header">Dados do Responsável</div>
           <div class="card-body">
             <div class="row gy-6 gx-6">
@@ -682,7 +682,7 @@
           </div>
         </div>
 
-        <div class="card glass-card mb-3">
+        <div class="card smart-card mb-3" data-form-section="confirmacao">
           <div class="card-body">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="declaro" name="declaro" value="1">
@@ -700,19 +700,41 @@
           </div>
         </div>
 
-        <div class="text-center">
-          <button type="submit" class="btn btn-primary btn-lg" id="btnEnviar">Enviar</button>
+        <div class="submit-bar">
+          <button type="button" class="btn btn-outline-secondary" id="btnRevisar">Revisar pendencias</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="btnEnviar">Enviar pre-matricula</button>
         </div>
-
-        @if(session('api_user') || auth()->check())
-        <div class="text-center mt-3">
-          <form method="POST" action="{{ route('api.logout') }}" class="d-inline">
-            @csrf
-            <button type="submit" class="btn btn-danger btn-sm">Sair / Deslogar</button>
-          </form>
-        </div>
-        @endif
       </form>
+
+      <aside class="smart-sidebar">
+        <div class="smart-card summary-card">
+          <div class="summary-title">Resumo inteligente</div>
+          <div class="summary-row">
+            <span>CPF</span>
+            <strong id="summaryCpf">Nao informado</strong>
+          </div>
+          <div class="summary-row">
+            <span>Idade em 31/03</span>
+            <strong id="summaryIdade">Aguardando data</strong>
+          </div>
+          <div class="summary-row">
+            <span>Turma</span>
+            <strong id="summaryTurma">Nao atribuida</strong>
+          </div>
+          <div class="summary-row">
+            <span>Escola</span>
+            <strong id="summaryEscola">Nao selecionada</strong>
+          </div>
+          <div class="summary-row">
+            <span>Responsavel</span>
+            <strong id="summaryResponsavel">Nao informado</strong>
+          </div>
+          <div class="mt-3">
+            <span class="smart-pill warning" id="summaryStatus">Preenchimento em andamento</span>
+          </div>
+        </div>
+      </aside>
+      </div>
     </div>
 
   </main>
@@ -735,7 +757,89 @@
       });
 
       function onlyDigits(s) {
-        return s.replace(/\D+/g, '');
+        return (s || '').replace(/\D+/g, '');
+      }
+
+      function selectedText(selector, fallback) {
+        var text = $(selector + ' option:selected').text();
+        return text && text !== 'Selecionar' ? text : fallback;
+      }
+
+      function setSelectLoading(selector, label) {
+        $(selector)
+          .addClass('is-loading-select')
+          .prop('disabled', true)
+          .empty()
+          .append('<option value="">' + label + '</option>');
+      }
+
+      function setSelectReady(selector, label) {
+        $(selector)
+          .removeClass('is-loading-select')
+          .prop('disabled', false);
+        if (!$(selector).children().length) {
+          $(selector).append('<option value="">' + label + '</option>');
+        }
+      }
+
+      function updateSmartUI() {
+        var required = $('#formInscricao').find('[required]');
+        var filled = 0;
+        required.each(function() {
+          if ($(this).is(':checkbox')) {
+            if ($(this).is(':checked')) filled++;
+          } else if ($(this).val()) {
+            filled++;
+          }
+        });
+        if ($('#declaro').is(':checked')) filled++;
+        if ($('#edital').is(':checked')) filled++;
+        var total = required.length + 2;
+        var percent = total ? Math.round((filled / total) * 100) : 0;
+        percent = Math.max(0, Math.min(100, percent));
+
+        $('#formProgress').css('width', percent + '%').attr('aria-valuenow', percent);
+        $('#progressLabel').text(percent + '%');
+        $('#summaryCpf').text($('#cpf_candidato').val() || 'Nao informado');
+        $('#summaryIdade').text($('#idade_corte_text').text() || 'Aguardando data');
+        $('#summaryTurma').text($('#turma_especie_display').val() || 'Nao atribuida');
+        $('#summaryEscola').text(selectedText('#escola_nome_id', 'Nao selecionada'));
+        $('#summaryResponsavel').text($('#nome_responsavel').val() || 'Nao informado');
+
+        var status = $('#summaryStatus');
+        status.removeClass('warning success');
+        if ($('#aviso_data_corte').text()) {
+          status.addClass('warning').text('Revise a idade do candidato');
+        } else if (percent >= 100) {
+          status.addClass('success').text('Pronto para envio');
+        } else {
+          status.addClass('warning').text('Preenchimento em andamento');
+        }
+
+        var activeStep = 'candidato';
+        if ($('#nome_responsavel').val() || $('#email_responsavel').val() || $('#tel_cel_responsavel').val()) {
+          activeStep = 'responsavel';
+        }
+        if ($('#declaro').is(':checked') || $('#edital').is(':checked')) {
+          activeStep = 'confirmacao';
+        }
+        $('[data-step-chip]').removeClass('is-active');
+        $('[data-step-chip="' + activeStep + '"]').addClass('is-active');
+      }
+
+      function focusFirstPending() {
+        var pending = null;
+        $('#formInscricao').find('[required]').each(function() {
+          if (!pending && !$(this).val()) {
+            pending = this;
+          }
+        });
+        if (!pending && !$('#declaro').is(':checked')) pending = document.getElementById('declaro');
+        if (!pending && !$('#edital').is(':checked')) pending = document.getElementById('edital');
+        if (pending) {
+          pending.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(function() { pending.focus(); }, 350);
+        }
       }
 
       function formatCPF(v) {
@@ -942,16 +1046,19 @@
 
       $('#data_nascimento').on('change', function() {
         atualizarIdadeECorte($(this).val());
+        updateSmartUI();
       });
 
       $('#irmao_gemeo').on('change', function() {
         var v = $(this).val();
         $('#grupo_nome_irmao').toggleClass('d-none', v !== 'sim');
+        updateSmartUI();
       });
 
       $('#portador_deficiencia').on('change', function() {
         var v = $(this).val();
         $('#grupo_deficiencias').toggleClass('d-none', v !== 'sim');
+        updateSmartUI();
       });
 
       $('#distrito_id').on('change', function() {
@@ -959,15 +1066,21 @@
         $('#escola_bairro_id').empty().append('<option value="">Selecionar</option>');
         $('#escola_nome_id').empty().append('<option value="">Selecionar</option>');
         $('#turma_id').empty().append('<option value="">Selecionar</option>');
+        updateSmartUI();
         if (!distrito) return;
+        setSelectLoading('#escola_bairro_id', 'Carregando bairros...');
         $.post('/matricula/consultar-bairro', {
           distrito: distrito
         }, function(resp) {
           var dados = resp.data || [];
+          $('#escola_bairro_id').empty().append('<option value="">Selecionar</option>');
           dados.forEach(function(b) {
             var label = (b.descricao || b.escola_bairro_id || 'Bairro');
             $('#escola_bairro_id').append('<option value="' + b.id + '">' + label + '</option>');
           });
+        }).always(function() {
+          setSelectReady('#escola_bairro_id', 'Selecionar');
+          updateSmartUI();
         });
       });
 
@@ -975,47 +1088,78 @@
         var bairro_id = $(this).val();
         $('#escola_nome_id').empty().append('<option value="">Selecionar</option>');
         $('#turma_id').empty().append('<option value="">Selecionar</option>');
+        updateSmartUI();
         if (!bairro_id) return;
+        setSelectLoading('#escola_nome_id', 'Buscando escolas compativeis...');
         $.post('/matricula/consultar-escola', {
           bairro_id: bairro_id,
           turma_especie: $('#turma_especie').val()
         }, function(resp) {
           var dados = resp.data || [];
+          $('#escola_nome_id').empty().append('<option value="">Selecionar</option>');
           dados.forEach(function(e) {
             $('#escola_nome_id').append('<option value="' + e.id + '">' + (e.escola_nome || e.nome || 'Escola') + '</option>');
           });
+          if (!dados.length) {
+            $('#escola_nome_id').append('<option value="">Nenhuma escola disponivel para a turma calculada</option>');
+          }
+        }).always(function() {
+          setSelectReady('#escola_nome_id', 'Selecionar');
+          updateSmartUI();
         });
       });
 
       $('#escola_nome_id').on('change', function() {
         var escola_id = $(this).val();
         $('#turma_id').empty().append('<option value="">Selecionar</option>');
+        updateSmartUI();
         if (!escola_id) return;
+        setSelectLoading('#turma_id', 'Carregando turmas...');
         $.post('/matricula/consultar-turma', {
           escola_id: escola_id
         }, function(resp) {
           var dados = resp.data || [];
+          $('#turma_id').empty().append('<option value="">Selecionar</option>');
           dados.forEach(function(t) {
             var label = (t.tipo_descricao ? t.tipo_descricao : (t.turma_nome || 'Turma'));
             $('#turma_id').append('<option value="' + t.id + '">' + label + '</option>');
           });
+        }).always(function() {
+          setSelectReady('#turma_id', 'Selecionar');
+          updateSmartUI();
         });
       });
 
       function clearErrors() {
         $('[data-error]').text('');
+        $('.is-invalid').removeClass('is-invalid');
       }
 
       function showErrors(errors) {
         Object.keys(errors || {}).forEach(function(k) {
           var msg = errors[k] && errors[k][0] ? errors[k][0] : '';
           $('[data-error="' + k + '"]').text(msg);
+          $('[name="' + k + '"]').addClass('is-invalid');
         });
       }
+
+      $('#btnRevisar').on('click', function() {
+        focusFirstPending();
+      });
+
+      $('#formInscricao').on('input change', 'input, select', function() {
+        var name = $(this).attr('name');
+        if (name) {
+          $('[data-error="' + name + '"]').text('');
+          $(this).removeClass('is-invalid');
+        }
+        updateSmartUI();
+      });
 
       $('#formInscricao').on('submit', function(e) {
         e.preventDefault();
         clearErrors();
+        updateSmartUI();
 
         var dados = {
           ano_letivo: $('#ano_letivo').val(),
@@ -1054,6 +1198,10 @@
           method: 'POST',
           headers: { 'Accept': 'application/json' },
           data: dados,
+          beforeSend: function() {
+            $('#btnEnviar').prop('disabled', true).text('Enviando...');
+            $('#btnRevisar').prop('disabled', true);
+          },
           success: function(resp) {
             var id = resp.id;
             var dl = resp.download_url || ('/matricula/comprovante/' + id + '/d');
@@ -1121,6 +1269,11 @@
                 }
               }
             }
+          },
+          complete: function() {
+            $('#btnEnviar').prop('disabled', false).text('Enviar pre-matricula');
+            $('#btnRevisar').prop('disabled', false);
+            updateSmartUI();
           }
         });
       });
@@ -1139,6 +1292,7 @@
         $('#grupo_nome_irmao').addClass('d-none');
         $('#grupo_deficiencias').addClass('d-none');
         $('#btnEnviar').prop('disabled', true);
+        updateSmartUI();
       }
 
       if (typeof onlyDigits !== 'function') {
@@ -1184,6 +1338,7 @@
               $('#portador_deficiencia').val(d.portador_deficiencia || '').trigger('change');
               $('#deficiencias_tipo').val(d.deficiencias_tipo || '').trigger('change');
               $('#grau_parentesco').val(d.grau_parentesco || '').trigger('change');
+              updateSmartUI();
             } else {
               $('[data-error="cpf_candidato"]').text('Nenhuma matrícula encontrada para este CPF.');
             }
@@ -1198,6 +1353,9 @@
             } catch(e) {
               console.log('Erro buscar CPF', e);
             }
+          },
+          complete: function() {
+            updateSmartUI();
           }
         });
       });
@@ -1230,6 +1388,8 @@
         var inst = bootstrap.Modal.getInstance(modalEl);
         if (inst) inst.hide();
       });
+
+      updateSmartUI();
     });
   </script>
 </body>
