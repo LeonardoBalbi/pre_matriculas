@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Filament\Admin\Resources\Turmas;
+
+use App\Filament\Admin\Resources\Turmas\Pages\CreateTurma;
+use App\Filament\Admin\Resources\Turmas\Pages\EditTurma;
+use App\Filament\Admin\Resources\Turmas\Pages\ListTurmas;
+use App\Filament\Admin\Resources\Turmas\Schemas\TurmaForm;
+use App\Filament\Admin\Resources\Turmas\Tables\TurmasTable;
+use App\Models\Turma;
+use BackedEnum;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+
+class TurmaResource extends Resource
+{
+    protected static ?string $model = Turma::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function form(Schema $schema): Schema
+    {
+        return TurmaForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return TurmasTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListTurmas::route('/'),
+            'create' => CreateTurma::route('/create'),
+            'edit' => EditTurma::route('/{record}/edit'),
+        ];
+    }
+}
