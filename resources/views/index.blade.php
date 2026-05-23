@@ -14,7 +14,12 @@
             <a class="brand-link" href="{{ url('/') }}" aria-label="Inicio">
                 <img src="/img/logo_governo_azul.png" onerror="this.src='/img/brasao-pmm-smeel-black.png'" alt="Prefeitura de Mangaratiba">
             </a>
-            <div class="nav-links">
+            <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="mobileHomeMenu" aria-label="Abrir menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-links" id="desktopHomeMenu">
                 <a href="#etapas">Etapas</a>
                 <a href="#unidades">Unidades</a>
                 <a href="#publicacao">Publicacao</a>
@@ -22,6 +27,14 @@
                 <a class="btn btn-outline-light nav-admin" href="{{ url('/admin') }}">Area administrativa</a>
                 <a class="btn btn-light nav-cta" href="/pre-matricula">Fazer inscricao</a>
             </div>
+        </div>
+        <div class="mobile-menu-panel" id="mobileHomeMenu" hidden>
+            <a href="/pre-matricula">Fazer inscricao</a>
+            <a href="{{ route('register.pre-matricula.status') }}">Acompanhar status</a>
+            <a href="{{ url('/admin') }}">Area administrativa</a>
+            <a href="#unidades">Unidades escolares</a>
+            <a href="#etapas">Etapas</a>
+            <a href="#publicacao">Publicacao</a>
         </div>
     </nav>
 
@@ -215,6 +228,32 @@
 @push('scripts')
 <script>
     (function () {
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const mobileHomeMenu = document.getElementById('mobileHomeMenu');
+
+        if (mobileMenuToggle && mobileHomeMenu) {
+            mobileMenuToggle.addEventListener('click', () => {
+                const expanded = mobileMenuToggle.getAttribute('aria-expanded') === 'true';
+
+                mobileMenuToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                mobileHomeMenu.hidden = expanded;
+            });
+
+            mobileHomeMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                    mobileHomeMenu.hidden = true;
+                });
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                    mobileHomeMenu.hidden = true;
+                }
+            });
+        }
+
         setInterval(async function () {
             try {
                 const resp = await fetch('/manutencao-status');
@@ -362,6 +401,47 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+    }
+
+    .mobile-menu-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        padding: 0;
+        border: 1px solid rgba(255,255,255,.32);
+        border-radius: 8px;
+        background: rgba(255,255,255,.12);
+    }
+
+    .mobile-menu-toggle span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        border-radius: 999px;
+        background: #fff;
+        transition: transform .18s ease, opacity .18s ease;
+    }
+
+    .mobile-menu-toggle span + span {
+        margin-top: 5px;
+    }
+
+    .mobile-menu-toggle[aria-expanded="true"] span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-toggle[aria-expanded="true"] span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-toggle[aria-expanded="true"] span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .mobile-menu-panel {
+        display: none;
     }
 
     .nav-links a:not(.btn) {
@@ -746,21 +826,48 @@
             object-fit: contain;
         }
 
-        .nav-links {
-            flex: 1;
-            min-width: 0;
-            overflow-x: auto;
-            gap: .75rem;
-            padding-bottom: .25rem;
-            scrollbar-width: none;
+        .mobile-menu-toggle {
+            display: inline-flex;
+            flex-direction: column;
+            flex-shrink: 0;
         }
 
-        .nav-links::-webkit-scrollbar {
+        .nav-links {
             display: none;
         }
 
-        .nav-links a:not(.btn) {
-            white-space: nowrap;
+        .mobile-menu-panel {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 12px;
+            right: 12px;
+            z-index: 100;
+            display: grid;
+            gap: .5rem;
+            padding: .75rem;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 8px;
+            background: rgba(3, 44, 91, .98);
+            box-shadow: 0 18px 44px rgba(3, 44, 91, .28);
+        }
+
+        .mobile-menu-panel[hidden] {
+            display: none;
+        }
+
+        .mobile-menu-panel a {
+            display: flex;
+            align-items: center;
+            min-height: 44px;
+            padding: .65rem .75rem;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .mobile-menu-panel a:hover {
+            background: rgba(255,255,255,.12);
         }
 
         .nav-admin,

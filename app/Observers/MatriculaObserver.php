@@ -44,10 +44,6 @@ class MatriculaObserver
 
         MatriculaEmails::inscricaoRecebida($matricula);
 
-        if ($this->isMatriculado($matricula)) {
-            MatriculaEmails::matriculaConfirmada($matricula);
-        }
-
         // Limpar o cache
         $this->clearCache();
     }
