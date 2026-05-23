@@ -28,7 +28,7 @@ class ListMatriculas extends ListRecords
 
     public function getTabs(): array
     {
-        $emAnaliseId = $this->statusId('Em análise');
+        $emAnaliseId = $this->statusIdLike('Em an%lise');
         $matriculadoId = $this->statusId('Matriculado');
         $cadastroReservaId = $this->statusId('Cadastro de reserva');
         $organizadosIds = collect([$emAnaliseId, $matriculadoId, $cadastroReservaId])
@@ -62,6 +62,13 @@ class ListMatriculas extends ListRecords
     {
         return StatusMatricula::query()
             ->where('status_matricula', $status)
+            ->value('id');
+    }
+
+    protected function statusIdLike(string $status): ?int
+    {
+        return StatusMatricula::query()
+            ->where('status_matricula', 'like', $status)
             ->value('id');
     }
 
