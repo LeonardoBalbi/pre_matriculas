@@ -2,17 +2,18 @@
 
 namespace App\Notifications;
 
+use App\Models\Matricula;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use App\Models\Matricula;
-use Laravel\Nova\Notifications\NovaChannel;
-use Laravel\Nova\Notifications\NovaNotification as NovaMessage;
 
 class NovaAjustarTurmaTransferencia extends Notification
 {
     use Queueable;
 
     protected Matricula $matricula;
+
     protected int $escolaId;
 
     public function __construct(Matricula $matricula, int $escolaId)
@@ -21,23 +22,31 @@ class NovaAjustarTurmaTransferencia extends Notification
         $this->escolaId = $escolaId;
     }
 
-    public function via($notifiable)
+    public function via($notifiable): array
     {
-        return [NovaChannel::class, 'database'];
+        return ['database'];
     }
 
-    public function toNova($notifiable)
+    public function toDatabase($notifiable): array
     {
-        $msg = "Transferência concluída sem turma para {$this->matricula->nome_candidato}. Atribua uma turma na escola destino.";
-        $url = "/admin/resources/escolas/{$this->escolaId}";
-        return (new NovaMessage)
-            ->message($msg)
-            ->action('Abrir Escola destino', $url)
-            ->icon('exclamation')
-            ->type('warning');
+        $url = url("/admin/escolas/{$this->escolaId}/edit");
+
+        return FilamentNotification::make()
+            ->title('Ajustar turma da transferencia')
+            ->body("Transferencia concluida sem turma para {$this->matricula->nome_candidato}.")
+            ->icon('heroicon-o-exclamation-triangle')
+            ->warning()
+            ->actions([
+                Action::make('abrirEscola')
+                    ->label('Abrir escola')
+                    ->button()
+                    ->url($url)
+                    ->markAsRead(),
+            ])
+            ->getDatabaseMessage();
     }
 
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
             'matricula_id' => $this->matricula->id,

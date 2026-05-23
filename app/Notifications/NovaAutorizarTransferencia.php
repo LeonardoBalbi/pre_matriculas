@@ -2,12 +2,11 @@
 
 namespace App\Notifications;
 
+use App\Models\TransferRequest;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use App\Models\TransferRequest;
-use Laravel\Nova\Notifications\NovaChannel;
-use Laravel\Nova\Notifications\NovaNotification as NovaMessage;
-use Illuminate\Support\Facades\URL;
 
 class NovaAutorizarTransferencia extends Notification
 {
@@ -20,25 +19,37 @@ class NovaAutorizarTransferencia extends Notification
         $this->request = $request;
     }
 
-    public function via($notifiable)
+    public function via($notifiable): array
     {
-        return [NovaChannel::class, 'database'];
+        return ['database'];
     }
 
-    public function toNova($notifiable)
+    public function toDatabase($notifiable): array
     {
         $approve = route('admin.transfer.approve-direct', ['id' => $this->request->id]);
-        $msg = "Transferência solicitada para matrícula {$this->request->matricula_id}.";
+        $reject = route('admin.transfer.reject-direct', ['id' => $this->request->id]);
 
-        return (new NovaMessage)
-            ->message($msg)
-            ->action('Autorizar', $approve)
-            ->action('Recusar', route('admin.transfer.reject-direct', ['id' => $this->request->id]))
-            ->icon('arrow-right')
-            ->type('info');
+        return FilamentNotification::make()
+            ->title('Transferencia solicitada')
+            ->body("Matricula {$this->request->matricula_id} aguardando autorizacao.")
+            ->icon('heroicon-o-arrows-right-left')
+            ->info()
+            ->actions([
+                Action::make('autorizar')
+                    ->label('Autorizar')
+                    ->button()
+                    ->url($approve)
+                    ->markAsRead(),
+                Action::make('recusar')
+                    ->label('Recusar')
+                    ->color('danger')
+                    ->url($reject)
+                    ->markAsRead(),
+            ])
+            ->getDatabaseMessage();
     }
 
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
             'transfer_id' => $this->request->id,

@@ -267,6 +267,9 @@ class MatriculasTable
                 TextColumn::make('transferencia')
                     ->searchable(),
             ])
+            ->defaultSort(fn (Builder $query): Builder => $query
+                ->orderByDesc('data_inscricao')
+                ->orderByDesc('id'))
             ->filters([
                 TrashedFilter::make(),
             ])
