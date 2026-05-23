@@ -72,20 +72,15 @@ class MatriculaEmails
 
     protected static function dadosMatricula(Matricula $matricula): string
     {
-        $encodedId = base64_encode((string) $matricula->id);
-        $comprovante = url("/matricula/comprovante/{$encodedId}/d");
         $escola = $matricula->escola?->escola_nome
             ?? $matricula->escola_nome
             ?? 'Nao informado';
         $turma = $matricula->turma_especie ?: 'Nao informado';
-        $status = $matricula->statusMatricula?->status_matricula ?: 'Em analise';
 
         return "Protocolo: {$matricula->protocolo}\n"
             . "Aluno: {$matricula->nome_candidato}\n"
             . "Escola: {$escola}\n"
             . "Turma especie: {$turma}\n"
-            . "Ano letivo: {$matricula->ano_letivo}\n"
-            . "Situacao: {$status}\n"
-            . "Comprovante: {$comprovante}\n";
+            . "Ano letivo: {$matricula->ano_letivo}\n";
     }
 }

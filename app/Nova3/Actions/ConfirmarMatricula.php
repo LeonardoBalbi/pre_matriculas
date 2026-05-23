@@ -2,22 +2,21 @@
 
 namespace App\Nova\Actions;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Support\Collection;
-use Laravel\Nova\Actions\Action;
-use Laravel\Nova\Fields\ActionFields;
-use Illuminate\Http\Request;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use App\Models\StatusMatricula;
 use App\Notifications\NovaAbrirWhatsappMatricula;
+use Illuminate\Bus\Queueable;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Actions\Action as ActionResponse;
-use Illuminate\Support\Facades\Mail;
+use Laravel\Nova\Fields\ActionFields;
+use Laravel\Nova\Http\Requests\NovaRequest;
 
 class ConfirmarMatricula extends Action
 {
     use Queueable;
 
-    public $name = 'Confirmar matrícula';
+    public $name = 'Confirmar matricula';
 
     public function handle(ActionFields $fields, Collection $models)
     {
@@ -41,27 +40,12 @@ class ConfirmarMatricula extends Action
                 if (strlen($digits) === 12) {
                     $digits = substr($digits, 0, 4) . '9' . substr($digits, 4);
                 }
+
                 $encodedId = base64_encode((string) $matricula->id);
                 $comp = url("/matricula/comprovante/{$encodedId}/d");
-                $escola = $matricula->escola ? $matricula->escola->escola_nome : 'Não informado';
-                $msg = "MATRÍCULA CONFIRMADA\n\nProtocolo: {$matricula->protocolo}\nAluno: {$matricula->nome_candidato}\nEscola: {$escola}\nAno Letivo: {$matricula->ano_letivo}\nComprovante: {$comp}";
+                $escola = $matricula->escola ? $matricula->escola->escola_nome : 'Nao informado';
+                $msg = "MATRICULA CONFIRMADA\n\nProtocolo: {$matricula->protocolo}\nAluno: {$matricula->nome_candidato}\nEscola: {$escola}\nAno Letivo: {$matricula->ano_letivo}\nComprovante: {$comp}";
                 $waUrl = "https://web.whatsapp.com/send/?phone={$digits}&text=" . urlencode($msg);
-
-                if (!empty($matricula->email_responsavel)) {
-                    $texto = "MATRÍCULA CONFIRMADA\n\n"
-                        . "Protocolo: {$matricula->protocolo}\n"
-                        . "Aluno: {$matricula->nome_candidato}\n"
-                        . "Escola: {$escola}\n"
-                        . "Ano Letivo: {$matricula->ano_letivo}\n"
-                        . "Comprovante: {$comp}\n\n"
-                        . "Este é um aviso automático do sistema de pré-matrícula.";
-                    try {
-                        Mail::raw($texto, function ($m) use ($matricula) {
-                            $m->to($matricula->email_responsavel)->subject('Matrícula confirmada');
-                        });
-                    } catch (\Throwable $e) {
-                    }
-                }
             }
         }
 
@@ -69,10 +53,11 @@ class ConfirmarMatricula extends Action
             if (method_exists(ActionResponse::class, 'openInNewTab')) {
                 return ActionResponse::openInNewTab($waUrl);
             }
+
             return ActionResponse::redirectTo($waUrl);
         }
 
-        return ActionResponse::message('Matrícula(s) confirmada(s).');
+        return ActionResponse::message('Matricula(s) confirmada(s).');
     }
 
     public function fields(NovaRequest $request)
