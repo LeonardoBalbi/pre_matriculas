@@ -162,6 +162,36 @@ class Matricula extends Model
         return $this->created_at ? $this->created_at->format('H:i') : null;
     }
 
+    public function getSituacaoMatriculaNomeAttribute()
+    {
+        if (!$this->situacao_matricula) {
+            return null;
+        }
+
+        return $this->statusMatricula?->status_matricula
+            ?? StatusMatricula::whereKey($this->situacao_matricula)->value('status_matricula');
+    }
+
+    public function getEscolaNomeDisplayAttribute()
+    {
+        if (!$this->escola_nome_id) {
+            return null;
+        }
+
+        return $this->escola?->escola_nome
+            ?? Escola::whereKey($this->escola_nome_id)->value('escola_nome');
+    }
+
+    public function getTurmaNomeDisplayAttribute()
+    {
+        if (!$this->turma_id) {
+            return null;
+        }
+
+        return $this->turma?->turma_descricao
+            ?? Turma::whereKey($this->turma_id)->value('turma_descricao');
+    }
+
     public function getCelResponsavelAttribute()
     {
         if (!$this->tel_cel_responsavel) {

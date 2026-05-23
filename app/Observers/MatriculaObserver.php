@@ -28,7 +28,7 @@ class MatriculaObserver
         }
 
         // Notificar todos os usuários com o papel 'admin_edu'
-        $usuarios = User::role('admin_edu')->get();
+        $usuarios = User::role(['admin_edu', 'super-admin'])->get();
 
         foreach ($usuarios as $usuario) {
             try {

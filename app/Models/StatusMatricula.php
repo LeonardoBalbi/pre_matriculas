@@ -10,9 +10,8 @@ class StatusMatricula extends Model
     use HasFactory;
     protected $table = 'status_matriculas';
     protected $fillable = [
-        'situacao_matricula',
-
-        'color'
+        'status_matricula',
+        'color',
     ];
 
 

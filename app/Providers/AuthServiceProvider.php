@@ -17,6 +17,7 @@ class AuthServiceProvider extends ServiceProvider
         \App\Models\Candidato::class => \App\Policies\CandidatoPolicy::class,
         \App\Models\CandidatoXp::class => \App\Policies\CandidatoXpPolicy::class,
         \App\Models\Classificado::class => \App\Policies\ClassificadoPolicy::class,
+        \App\Models\CpfAutorizado::class => \App\Policies\CpfAutorizadoPolicy::class,
         \App\Models\Distrito::class => \App\Policies\DistritoPolicy::class,
         \App\Models\Escola::class => \App\Policies\EscolaPolicy::class,
         \App\Models\Escolaridade::class => \App\Policies\EscolaridadePolicy::class,

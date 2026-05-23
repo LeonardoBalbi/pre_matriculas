@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\Matriculas\Schemas;
 
+use App\Models\Escola;
+use App\Models\StatusMatricula;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -19,17 +21,59 @@ class MatriculaForm
                     ->required()
                     ->numeric()
                     ->default(0),
-                TextInput::make('situacao_matricula')
-                    ->numeric(),
+                Select::make('situacao_matricula')
+                    ->label('Situacao matricula')
+                    ->options(fn (): array => StatusMatricula::query()
+                        ->whereNotNull('status_matricula')
+                        ->where('status_matricula', '<>', '')
+                        ->orderBy('status_matricula')
+                        ->pluck('status_matricula', 'id')
+                        ->all())
+                    ->getSearchResultsUsing(fn (?string $search): array => StatusMatricula::query()
+                        ->whereNotNull('status_matricula')
+                        ->where('status_matricula', '<>', '')
+                        ->when($search, fn ($query) => $query->where('status_matricula', 'like', "%{$search}%"))
+                        ->orderBy('status_matricula')
+                        ->limit(50)
+                        ->pluck('status_matricula', 'id')
+                        ->all())
+                    ->getOptionLabelUsing(fn ($value): ?string => filled($value)
+                        ? (StatusMatricula::whereKey($value)->value('status_matricula') ?? 'Status nao encontrado')
+                        : null)
+                    ->searchable()
+                    ->native(false)
+                    ->preload()
+                    ->nullable(),
                 TextInput::make('ano_letivo'),
                 TextInput::make('data_nascimento'),
                 TextInput::make('nome_candidato'),
                 TextInput::make('cpf_candidato')
                     ->required(),
-                TextInput::make('escola_nome_id')
-                    ->numeric(),
-                TextInput::make('turma_id')
-                    ->numeric(),
+                Select::make('escola_nome_id')
+                    ->label('Escola')
+                    ->options(fn (): array => Escola::query()
+                        ->whereNotNull('escola_nome')
+                        ->where('escola_nome', '<>', '')
+                        ->orderBy('escola_nome')
+                        ->pluck('escola_nome', 'id')
+                        ->all())
+                    ->getSearchResultsUsing(fn (?string $search): array => Escola::query()
+                        ->whereNotNull('escola_nome')
+                        ->where('escola_nome', '<>', '')
+                        ->when($search, fn ($query) => $query->where('escola_nome', 'like', "%{$search}%"))
+                        ->orderBy('escola_nome')
+                        ->limit(50)
+                        ->pluck('escola_nome', 'id')
+                        ->all())
+                    ->getOptionLabelUsing(fn ($value): ?string => filled($value)
+                        ? (Escola::whereKey($value)->value('escola_nome') ?? 'Escola nao encontrada')
+                        : null)
+                    ->searchable()
+                    ->native(false)
+                    ->preload()
+                    ->nullable(),
+                TextInput::make('turma_especie')
+                    ->label('Turma especie'),
                 TextInput::make('observacao'),
                 DateTimePicker::make('data_inscricao'),
                 TextInput::make('idade'),
@@ -98,7 +142,6 @@ class MatriculaForm
                     ->required(),
                 Toggle::make('edital')
                     ->required(),
-                TextInput::make('turma_especie'),
                 TextInput::make('escola_nome'),
                 TextInput::make('transferencia'),
             ]);

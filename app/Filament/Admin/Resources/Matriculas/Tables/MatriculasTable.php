@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Matriculas\Tables;
 
+use App\Models\CpfAutorizado;
 use App\Models\Escola;
 use App\Models\Matricula;
 use App\Models\StatusMatricula;
@@ -80,15 +81,18 @@ class MatriculasTable
                     ->limit(36)
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('turma.turma_descricao')
-                    ->label('Turma')
-                    ->placeholder('Sem turma')
+                TextColumn::make('turma_especie')
+                    ->label('Turma especie')
+                    ->placeholder('-')
+                    ->badge()
+                    ->color(fn (?string $state): string => match (str($state)->ascii()->upper()->squish()->toString()) {
+                        'BERCARIO' => 'info',
+                        'INFANTIL 1' => 'success',
+                        'INFANTIL 2' => 'warning',
+                        'INFANTIL 3' => 'danger',
+                        default => 'gray',
+                    })
                     ->searchable(),
-                TextColumn::make('turma_id')
-                    ->label('Turma ID')
-                    ->numeric()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('observacao')
                     ->label('Observacao')
                     ->limit(50)
@@ -105,7 +109,7 @@ class MatriculasTable
                             blank($record->tel_cel_responsavel) ? 'Sem celular' : null,
                             blank($record->email_responsavel) ? 'Sem e-mail' : null,
                             blank($record->escola_nome_id) ? 'Sem escola' : null,
-                            blank($record->turma_id) ? 'Sem turma' : null,
+                            blank($record->turma_especie) ? 'Sem turma especie' : null,
                         ])->filter();
 
                         return $pendencias->isEmpty() ? 'OK' : $pendencias->join(', ');
@@ -254,8 +258,6 @@ class MatriculasTable
                     ->boolean(),
                 IconColumn::make('edital')
                     ->boolean(),
-                TextColumn::make('turma_especie')
-                    ->searchable(),
                 TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
@@ -486,6 +488,32 @@ class MatriculasTable
                     ->action(function ($record): void {
                         $record->restore();
                         Notification::make()->title('Matrícula restaurada com sucesso.')->success()->send();
+                    }),
+                Action::make('liberarCpf')
+                    ->label('Liberar CPF')
+                    ->icon('heroicon-o-lock-open')
+                    ->color('success')
+                    ->visible(function ($record): bool {
+                        if (! auth()->user()?->hasAnyRole(['super-admin', 'admin', 'admin_edu'])) {
+                            return false;
+                        }
+
+                        $cpf = preg_replace('/\D+/', '', (string) $record->cpf_candidato);
+
+                        return $cpf !== '' && CpfAutorizado::where('cpf', $cpf)->exists();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Liberar CPF para novo cadastro')
+                    ->modalDescription('Remove este CPF da lista de bloqueio. A matricula atual continua registrada, mas o formulario publico podera aceitar novo cadastro para o mesmo CPF.')
+                    ->action(function ($record): void {
+                        $cpf = preg_replace('/\D+/', '', (string) $record->cpf_candidato);
+                        $deleted = $cpf !== '' ? CpfAutorizado::where('cpf', $cpf)->delete() : 0;
+
+                        Notification::make()
+                            ->title($deleted ? 'CPF liberado' : 'CPF ja estava liberado')
+                            ->body($deleted ? 'Novo cadastro com este CPF foi liberado.' : 'Nao havia bloqueio ativo para este CPF.')
+                            ->success()
+                            ->send();
                     }),
                 ViewAction::make(),
                 EditAction::make(),

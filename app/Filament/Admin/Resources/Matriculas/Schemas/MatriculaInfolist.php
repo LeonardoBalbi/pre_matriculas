@@ -15,8 +15,8 @@ class MatriculaInfolist
             ->components([
                 TextEntry::make('protocolo')
                     ->numeric(),
-                TextEntry::make('situacao_matricula')
-                    ->numeric()
+                TextEntry::make('situacao_matricula_nome')
+                    ->label('Situacao matricula')
                     ->placeholder('-'),
                 TextEntry::make('ano_letivo')
                     ->placeholder('-'),
@@ -25,11 +25,19 @@ class MatriculaInfolist
                 TextEntry::make('nome_candidato')
                     ->placeholder('-'),
                 TextEntry::make('cpf_candidato'),
-                TextEntry::make('escola_nome_id')
-                    ->numeric()
+                TextEntry::make('escola_nome_display')
+                    ->label('Escola')
                     ->placeholder('-'),
-                TextEntry::make('turma_id')
-                    ->numeric()
+                TextEntry::make('turma_especie')
+                    ->label('Turma especie')
+                    ->badge()
+                    ->color(fn (?string $state): string => match (str($state)->ascii()->upper()->squish()->toString()) {
+                        'BERCARIO' => 'info',
+                        'INFANTIL 1' => 'success',
+                        'INFANTIL 2' => 'warning',
+                        'INFANTIL 3' => 'danger',
+                        default => 'gray',
+                    })
                     ->placeholder('-'),
                 TextEntry::make('observacao')
                     ->placeholder('-'),
@@ -143,8 +151,6 @@ class MatriculaInfolist
                     ->boolean(),
                 IconEntry::make('edital')
                     ->boolean(),
-                TextEntry::make('turma_especie')
-                    ->placeholder('-'),
                 TextEntry::make('deleted_at')
                     ->dateTime()
                     ->visible(fn (Matricula $record): bool => $record->trashed()),
