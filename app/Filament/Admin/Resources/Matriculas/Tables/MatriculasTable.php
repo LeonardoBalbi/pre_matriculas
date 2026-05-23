@@ -28,7 +28,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Mail;
 use League\Csv\Writer;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Filament\Tables\Columns\TextColumn;
@@ -289,25 +288,6 @@ class MatriculasTable
                         $record->situacao_matricula = $matriculadoId;
                         auth()->user()?->notify(new NovaAbrirWhatsappMatricula($record));
                         $record->save();
-
-                        // Enviar Email
-                        if (!empty($record->email_responsavel)) {
-                            $escola = $record->escola ? $record->escola->escola_nome : 'Não informado';
-                            $encodedId = base64_encode((string) $record->id);
-                            $comp = url("/matricula/comprovante/{$encodedId}/d");
-                            $texto = "MATRÍCULA CONFIRMADA\n\n"
-                                . "Protocolo: {$record->protocolo}\n"
-                                . "Aluno: {$record->nome_candidato}\n"
-                                . "Escola: {$escola}\n"
-                                . "Ano Letivo: {$record->ano_letivo}\n"
-                                . "Comprovante: {$comp}\n\n"
-                                . "Este é um aviso automático do sistema de pré-matrícula.";
-                            try {
-                                Mail::raw($texto, function ($m) use ($record) {
-                                    $m->to($record->email_responsavel)->subject('Matrícula confirmada');
-                                });
-                            } catch (\Throwable $e) {}
-                        }
 
                         // WhatsApp Redirect
                         $telefone = $record->tel_cel_responsavel;
@@ -573,25 +553,6 @@ class MatriculasTable
                                 $record->situacao_matricula = $matriculadoId;
                                 auth()->user()?->notify(new NovaAbrirWhatsappMatricula($record));
                                 $record->save();
-
-                                // Enviar Email
-                                if (!empty($record->email_responsavel)) {
-                                    $escola = $record->escola ? $record->escola->escola_nome : 'Não informado';
-                                    $encodedId = base64_encode((string) $record->id);
-                                    $comp = url("/matricula/comprovante/{$encodedId}/d");
-                                    $texto = "MATRÍCULA CONFIRMADA\n\n"
-                                        . "Protocolo: {$record->protocolo}\n"
-                                        . "Aluno: {$record->nome_candidato}\n"
-                                        . "Escola: {$escola}\n"
-                                        . "Ano Letivo: {$record->ano_letivo}\n"
-                                        . "Comprovante: {$comp}\n\n"
-                                        . "Este é um aviso automático do sistema de pré-matrícula.";
-                                    try {
-                                        Mail::raw($texto, function ($m) use ($record) {
-                                            $m->to($record->email_responsavel)->subject('Matrícula confirmada');
-                                        });
-                                    } catch (\Throwable $e) {}
-                                }
                             }
 
                             Notification::make()

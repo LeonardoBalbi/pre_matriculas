@@ -6,10 +6,10 @@ use App\Models\Matricula;
 use App\Models\MatriculaDeletedLog;
 use App\Models\User;
 use App\Notifications\NovaMatriculaCriada;
+use App\Support\MatriculaEmails;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
-// use Illuminate\Support\Facades\Mail;
 
 class MatriculaObserver
 {
@@ -42,7 +42,11 @@ class MatriculaObserver
             }
         }
 
-        // Fluxo de envio por e-mail desativado para não interferir na resposta HTTP
+        MatriculaEmails::inscricaoRecebida($matricula);
+
+        if ($this->isMatriculado($matricula)) {
+            MatriculaEmails::matriculaConfirmada($matricula);
+        }
 
         // Limpar o cache
         $this->clearCache();
@@ -69,6 +73,11 @@ class MatriculaObserver
             $cpf = preg_replace('/\D+/', '', $matricula->cpf_candidato);
             \App\Models\CpfAutorizado::where('cpf', $cpf)->delete();
         }
+
+        if ($original !== $current && $this->isMatriculado($matricula)) {
+            MatriculaEmails::matriculaConfirmada($matricula);
+        }
+
         $this->clearCache();
     }
 
@@ -96,5 +105,17 @@ class MatriculaObserver
     private function clearCache(): void
     {
         return;
+    }
+
+    private function isMatriculado(Matricula $matricula): bool
+    {
+        if (is_numeric($matricula->situacao_matricula) && (int) $matricula->situacao_matricula === 11) {
+            return true;
+        }
+
+        $status = $matricula->statusMatricula;
+        $nome = $status ? ($status->status_matricula ?? $status->situacao_matricula) : null;
+
+        return is_string($nome) && mb_strtolower($nome) === 'matriculado';
     }
 }
