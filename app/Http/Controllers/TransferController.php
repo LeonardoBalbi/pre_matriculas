@@ -2,176 +2,176 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\TransferRequest;
 use App\Models\Matricula;
 use App\Models\TransferLog;
+use App\Models\TransferRequest;
 use App\Models\Turma;
 use App\Models\User;
-use App\Notifications\NovaAjustarTurmaTransferencia;
-use Illuminate\Support\Facades\Auth;
+use App\Notifications\AjustarTurmaTransferenciaNotification;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TransferController extends Controller
 {
     public function approve(Request $request, $id)
     {
-        $tr = TransferRequest::findOrFail($id);
-        if (!$request->hasValidSignature()) {
-            return redirect('/admin/resources/colegios')->with('error', 'Assinatura inválida');
+        $transferRequest = TransferRequest::findOrFail($id);
+
+        if (! $request->hasValidSignature()) {
+            return redirect('/admin/matriculas')->with('error', 'Assinatura invalida');
         }
+
         $user = Auth::user();
-        $tr->status = 'approved';
-        $tr->authorized_by = $user ? $user->id : null;
-        $tr->authorized_at = Carbon::now();
-        $tr->save();
+        $this->approveTransfer($transferRequest, $user ? $user->id : null, $user);
 
-        $mat = Matricula::find($tr->matricula_id);
-        if ($mat) {
-            $mat->escola_nome_id = $tr->to_escola_id;
-            $mat->pedido_transferencia = 'Transferida';
-            if (!empty($mat->turma_especie)) {
-                $tipo = \DB::table('turma_tipos')->where('tipo_descricao', $mat->turma_especie)->first();
-                if ($tipo) {
-                    $novaTurma = Turma::where('turma_escola_id', $tr->to_escola_id)
-                        ->where('turma_tipo_id', $tipo->id)
-                        ->where('turma_status', 'ativa')
-                        ->orderBy('id')
-                        ->first();
-                    if ($novaTurma) {
-                        $mat->turma_id = $novaTurma->id;
-                    } else {
-                        $mat->turma_id = null;
-                        $notifyUsers = collect();
-                        if ($user) {
-                            $notifyUsers = $notifyUsers->push($user);
-                        }
-                        $notifyUsers = $notifyUsers->merge(User::role('colegio')->where('escola_id', $tr->to_escola_id)->get());
-                        $notifyUsers = $notifyUsers->merge(User::role('admin_edu')->get());
-                        foreach ($notifyUsers as $u) {
-                            $u->notify(new NovaAjustarTurmaTransferencia($mat, $tr->to_escola_id));
-                        }
-                    }
-                }
-            }
-            $mat->save();
-
-            TransferLog::create([
-                'matricula_id' => $mat->id,
-                'from_escola_id' => $tr->from_escola_id,
-                'to_escola_id' => $tr->to_escola_id,
-                'action' => 'approved',
-                'by_user_id' => $user ? $user->id : null,
-                'reason' => $tr->reason,
-            ]);
-        }
-
-        return redirect('/admin/resources/colegios')->with('status', 'Transferência aprovada');
+        return redirect('/admin/matriculas')->with('status', 'Transferencia aprovada');
     }
 
     public function reject(Request $request, $id)
     {
-        $tr = TransferRequest::findOrFail($id);
-        if (!$request->hasValidSignature()) {
-            return redirect('/admin/resources/colegios')->with('error', 'Assinatura inválida');
-        }
-        $user = Auth::user();
-        $tr->status = 'rejected';
-        $tr->authorized_by = $user ? $user->id : null;
-        $tr->authorized_at = Carbon::now();
-        $tr->save();
+        $transferRequest = TransferRequest::findOrFail($id);
 
-        return redirect('/admin/resources/colegios')->with('status', 'Transferência recusada');
+        if (! $request->hasValidSignature()) {
+            return redirect('/admin/matriculas')->with('error', 'Assinatura invalida');
+        }
+
+        $transferRequest->status = 'rejected';
+        $transferRequest->authorized_by = Auth::id();
+        $transferRequest->authorized_at = Carbon::now();
+        $transferRequest->save();
+
+        return redirect('/admin/matriculas')->with('status', 'Transferencia recusada');
     }
 
     public function approveDirect(Request $request, $id)
     {
         $user = Auth::user();
-        if (!$user) {
-            return redirect('/admin/resources/colegios')->with('error', 'Não autenticado');
-        }
-        $tr = TransferRequest::findOrFail($id);
-        if ($user->hasRole('colegio')) {
-            if ((int)($user->escola_id ?? 0) !== (int)$tr->to_escola_id) {
-                return redirect('/admin/resources/colegios')->with('error', 'Usuário não pertence à escola destino');
-            }
-        } elseif (!$user->hasAnyRole(['admin_edu', 'super-admin'])) {
-            return redirect('/admin/resources/colegios')->with('error', 'Sem permissão para autorizar');
+
+        if (! $user) {
+            return redirect('/admin/matriculas')->with('error', 'Nao autenticado');
         }
 
-        $tr->status = 'approved';
-        $tr->authorized_by = $user->id;
-        $tr->authorized_at = Carbon::now();
-        $tr->save();
+        $transferRequest = TransferRequest::findOrFail($id);
 
-        $mat = Matricula::find($tr->matricula_id);
-        if ($mat) {
-            $mat->escola_nome_id = $tr->to_escola_id;
-            $mat->pedido_transferencia = 'Transferida';
-            if (!empty($mat->turma_especie)) {
-                $tipo = \DB::table('turma_tipos')->where('tipo_descricao', $mat->turma_especie)->first();
-                if ($tipo) {
-                    $novaTurma = Turma::where('turma_escola_id', $tr->to_escola_id)
-                        ->where('turma_tipo_id', $tipo->id)
-                        ->where('turma_status', 'ativa')
-                        ->orderBy('id')
-                        ->first();
-                    if ($novaTurma) {
-                        $mat->turma_id = $novaTurma->id;
-                    } else {
-                        $mat->turma_id = null;
-                        $notifyUsers = collect([$user]);
-                        $notifyUsers = $notifyUsers->merge(\App\Models\User::role('admin_edu')->get());
-                        foreach ($notifyUsers as $u) {
-                            $u->notify(new \App\Notifications\NovaAjustarTurmaTransferencia($mat, $tr->to_escola_id));
-                        }
-                    }
-                }
-            }
-            $mat->save();
-
-            TransferLog::create([
-                'matricula_id' => $mat->id,
-                'from_escola_id' => $tr->from_escola_id,
-                'to_escola_id' => $tr->to_escola_id,
-                'action' => 'approved',
-                'by_user_id' => $user->id,
-                'reason' => $tr->reason,
-            ]);
+        if ($redirect = $this->validateDirectUser($user, $transferRequest, 'autorizar')) {
+            return $redirect;
         }
 
-        return redirect('/admin/resources/colegios')->with('status', 'Transferência aprovada');
+        $this->approveTransfer($transferRequest, $user->id, $user);
+
+        return redirect('/admin/matriculas')->with('status', 'Transferencia aprovada');
     }
 
     public function rejectDirect(Request $request, $id)
     {
         $user = Auth::user();
-        if (!$user) {
-            return redirect('/admin/resources/colegios')->with('error', 'Não autenticado');
-        }
-        $tr = TransferRequest::findOrFail($id);
-        if ($user->hasRole('colegio')) {
-            if ((int)($user->escola_id ?? 0) !== (int)$tr->to_escola_id) {
-                return redirect('/admin/resources/colegios')->with('error', 'Usuário não pertence à escola destino');
-            }
-        } elseif (!$user->hasAnyRole(['admin_edu', 'super-admin'])) {
-            return redirect('/admin/resources/colegios')->with('error', 'Sem permissão para recusar');
+
+        if (! $user) {
+            return redirect('/admin/matriculas')->with('error', 'Nao autenticado');
         }
 
-        $tr->status = 'rejected';
-        $tr->authorized_by = $user->id;
-        $tr->authorized_at = Carbon::now();
-        $tr->save();
+        $transferRequest = TransferRequest::findOrFail($id);
+
+        if ($redirect = $this->validateDirectUser($user, $transferRequest, 'recusar')) {
+            return $redirect;
+        }
+
+        $transferRequest->status = 'rejected';
+        $transferRequest->authorized_by = $user->id;
+        $transferRequest->authorized_at = Carbon::now();
+        $transferRequest->save();
 
         TransferLog::create([
-            'matricula_id' => $tr->matricula_id,
-            'from_escola_id' => $tr->from_escola_id,
-            'to_escola_id' => $tr->to_escola_id,
+            'matricula_id' => $transferRequest->matricula_id,
+            'from_escola_id' => $transferRequest->from_escola_id,
+            'to_escola_id' => $transferRequest->to_escola_id,
             'action' => 'rejected',
             'by_user_id' => $user->id,
-            'reason' => $tr->reason,
+            'reason' => $transferRequest->reason,
         ]);
 
-        return redirect('/admin/resources/colegios')->with('status', 'Transferência recusada');
+        return redirect('/admin/matriculas')->with('status', 'Transferencia recusada');
+    }
+
+    private function validateDirectUser(User $user, TransferRequest $transferRequest, string $action)
+    {
+        if ($user->hasRole('colegio')) {
+            if ((int) ($user->escola_id ?? 0) !== (int) $transferRequest->to_escola_id) {
+                return redirect('/admin/matriculas')->with('error', 'Usuario nao pertence a escola destino');
+            }
+        } elseif (! $user->hasAnyRole(['admin_edu', 'super-admin'])) {
+            return redirect('/admin/matriculas')->with('error', "Sem permissao para {$action}");
+        }
+
+        return null;
+    }
+
+    private function approveTransfer(TransferRequest $transferRequest, ?int $userId, $user = null): void
+    {
+        $transferRequest->status = 'approved';
+        $transferRequest->authorized_by = $userId;
+        $transferRequest->authorized_at = Carbon::now();
+        $transferRequest->save();
+
+        $matricula = Matricula::find($transferRequest->matricula_id);
+
+        if (! $matricula) {
+            return;
+        }
+
+        $matricula->escola_nome_id = $transferRequest->to_escola_id;
+        $matricula->pedido_transferencia = 'Transferida';
+
+        if (! empty($matricula->turma_especie)) {
+            $tipo = DB::table('turma_tipos')
+                ->where('tipo_descricao', $matricula->turma_especie)
+                ->first();
+
+            if ($tipo) {
+                $novaTurma = Turma::where('turma_escola_id', $transferRequest->to_escola_id)
+                    ->where('turma_tipo_id', $tipo->id)
+                    ->where('turma_status', 'ativa')
+                    ->orderBy('id')
+                    ->first();
+
+                if ($novaTurma) {
+                    $matricula->turma_id = $novaTurma->id;
+                } else {
+                    $matricula->turma_id = null;
+                    $this->notifyTurmaAdjustment($matricula, $transferRequest->to_escola_id, $user);
+                }
+            }
+        }
+
+        $matricula->save();
+
+        TransferLog::create([
+            'matricula_id' => $matricula->id,
+            'from_escola_id' => $transferRequest->from_escola_id,
+            'to_escola_id' => $transferRequest->to_escola_id,
+            'action' => 'approved',
+            'by_user_id' => $userId,
+            'reason' => $transferRequest->reason,
+        ]);
+    }
+
+    private function notifyTurmaAdjustment(Matricula $matricula, int $escolaId, $user = null): void
+    {
+        $notifyUsers = collect();
+
+        if ($user) {
+            $notifyUsers->push($user);
+        }
+
+        $notifyUsers = $notifyUsers
+            ->merge(User::role('colegio')->where('escola_id', $escolaId)->get())
+            ->merge(User::role('admin_edu')->get())
+            ->unique('id');
+
+        foreach ($notifyUsers as $notifyUser) {
+            $notifyUser->notify(new AjustarTurmaTransferenciaNotification($matricula, $escolaId));
+        }
     }
 }

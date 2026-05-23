@@ -447,7 +447,7 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-success" id="btnNovaInscricao">Nova inscrição</button>
+              <button type="button" class="btn btn-success" id="btnCriarInscricao">Nova inscrição</button>
             </div>
           </div>
         </div>
@@ -1382,7 +1382,7 @@
         }
       });
 
-      $('#btnNovaInscricao').on('click', function() {
+      $('#btnCriarInscricao').on('click', function() {
         resetFormulario();
         var modalEl = document.getElementById('modalSucesso');
         var inst = bootstrap.Modal.getInstance(modalEl);

@@ -2,13 +2,13 @@
 
 namespace App\Observers;
 
+use App\Models\CpfAutorizado;
 use App\Models\Matricula;
 use App\Models\MatriculaDeletedLog;
 use App\Models\User;
-use App\Notifications\NovaMatriculaCriada;
+use App\Notifications\MatriculaCriadaNotification;
 use App\Support\MatriculaEmails;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
 class MatriculaObserver
@@ -20,10 +20,10 @@ class MatriculaObserver
     {
         // Registra o CPF na tabela de bloqueio para impedir duplicidade futura
         // A menos que o admin remova manualmente deste registro.
-        if (!empty($matricula->cpf_candidato)) {
-            \App\Models\CpfAutorizado::firstOrCreate(
+        if (! empty($matricula->cpf_candidato)) {
+            CpfAutorizado::firstOrCreate(
                 ['cpf' => preg_replace('/\D+/', '', $matricula->cpf_candidato)],
-                ['motivo' => 'Cadastro realizado em ' . now()->format('d/m/Y')]
+                ['motivo' => 'Cadastro realizado em '.now()->format('d/m/Y')]
             );
         }
 
@@ -32,12 +32,12 @@ class MatriculaObserver
 
         foreach ($usuarios as $usuario) {
             try {
-                $usuario->notify(new NovaMatriculaCriada($matricula));
+                $usuario->notify(new MatriculaCriadaNotification($matricula));
             } catch (\Throwable $e) {
                 Log::error('Falha ao notificar usuário admin_edu', [
                     'user_id' => $usuario->id,
-                    'email'   => $usuario->email,
-                    'error'   => $e->getMessage(),
+                    'email' => $usuario->email,
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -69,9 +69,9 @@ class MatriculaObserver
                 $isDesistente = true;
             }
         }
-        if ($original !== $current && $isDesistente && !empty($matricula->cpf_candidato)) {
+        if ($original !== $current && $isDesistente && ! empty($matricula->cpf_candidato)) {
             $cpf = preg_replace('/\D+/', '', $matricula->cpf_candidato);
-            \App\Models\CpfAutorizado::where('cpf', $cpf)->delete();
+            CpfAutorizado::where('cpf', $cpf)->delete();
         }
 
         if ($original !== $current && $this->isMatriculado($matricula)) {
@@ -88,11 +88,11 @@ class MatriculaObserver
     {
         // Criar log de exclusão
         MatriculaDeletedLog::create([
-            'matricula_id'     => $matricula->id,
-            'deleted_by'       => Auth::id(),
-            'deleted_by_name'  => Auth::user() ? Auth::user()->name : 'Sistema',
-            'motivo_exclusao'  => request('motivo_exclusao') ?? 'Não informado',
-            'dados_matricula'  => $matricula->toArray(),
+            'matricula_id' => $matricula->id,
+            'deleted_by' => Auth::id(),
+            'deleted_by_name' => Auth::user() ? Auth::user()->name : 'Sistema',
+            'motivo_exclusao' => request('motivo_exclusao') ?? 'Não informado',
+            'dados_matricula' => $matricula->toArray(),
         ]);
 
         // Limpar o cache
@@ -102,10 +102,7 @@ class MatriculaObserver
     /**
      * Limpa o cache da aplicação
      */
-    private function clearCache(): void
-    {
-        return;
-    }
+    private function clearCache(): void {}
 
     private function isMatriculado(Matricula $matricula): bool
     {

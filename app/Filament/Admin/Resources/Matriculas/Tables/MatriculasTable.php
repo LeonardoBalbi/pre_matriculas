@@ -4,14 +4,13 @@ namespace App\Filament\Admin\Resources\Matriculas\Tables;
 
 use App\Models\CpfAutorizado;
 use App\Models\Escola;
-use App\Models\Matricula;
 use App\Models\StatusMatricula;
 use App\Models\TransferLog;
 use App\Models\TransferRequest;
 use App\Models\Turma;
 use App\Models\User;
-use App\Notifications\NovaAbrirWhatsappMatricula;
-use App\Notifications\NovaAutorizarTransferencia;
+use App\Notifications\AbrirWhatsappMatriculaNotification;
+use App\Notifications\AutorizarTransferenciaNotification;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -24,15 +23,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Builder;
-use League\Csv\Writer;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use League\Csv\Writer;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MatriculasTable
 {
@@ -280,29 +277,30 @@ class MatriculasTable
                     ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'colegio', 'super-admin', 'admin_edu']))
                     ->action(function ($record): void {
                         $matriculadoId = StatusMatricula::where('status_matricula', 'Matriculado')->value('id');
-                        if (!$matriculadoId) {
+                        if (! $matriculadoId) {
                             Notification::make()->title('Erro')->body('Status "Matriculado" não encontrado.')->danger()->send();
+
                             return;
                         }
 
                         $record->situacao_matricula = $matriculadoId;
-                        auth()->user()?->notify(new NovaAbrirWhatsappMatricula($record));
+                        auth()->user()?->notify(new AbrirWhatsappMatriculaNotification($record));
                         $record->save();
 
                         // WhatsApp Redirect
                         $telefone = $record->tel_cel_responsavel;
                         $digits = preg_replace('/[^0-9]/', '', (string) $telefone);
                         if ($digits && substr($digits, 0, 2) !== '55') {
-                            $digits = '55' . $digits;
+                            $digits = '55'.$digits;
                         }
                         if (strlen($digits) === 12) {
-                            $digits = substr($digits, 0, 4) . '9' . substr($digits, 4);
+                            $digits = substr($digits, 0, 4).'9'.substr($digits, 4);
                         }
                         $escola = $record->escola ? $record->escola->escola_nome : 'Não informado';
                         $encodedId = base64_encode((string) $record->id);
                         $comp = url("/matricula/comprovante/{$encodedId}/d");
                         $msg = "MATRÍCULA CONFIRMADA\n\nProtocolo: {$record->protocolo}\nAluno: {$record->nome_candidato}\nEscola: {$escola}\nAno Letivo: {$record->ano_letivo}\nComprovante: {$comp}";
-                        $waUrl = "https://web.whatsapp.com/send/?phone={$digits}&text=" . urlencode($msg);
+                        $waUrl = "https://web.whatsapp.com/send/?phone={$digits}&text=".urlencode($msg);
 
                         Notification::make()->title('Matrícula confirmada!')->success()->send();
 
@@ -314,16 +312,17 @@ class MatriculasTable
                         $telefone = $record->tel_cel_responsavel;
                         $digits = preg_replace('/[^0-9]/', '', (string) $telefone);
                         if ($digits && substr($digits, 0, 2) !== '55') {
-                            $digits = '55' . $digits;
+                            $digits = '55'.$digits;
                         }
                         if (strlen($digits) === 12) {
-                            $digits = substr($digits, 0, 4) . '9' . substr($digits, 4);
+                            $digits = substr($digits, 0, 4).'9'.substr($digits, 4);
                         }
                         $escola = $record->escola ? $record->escola->escola_nome : 'Não informado';
                         $encodedId = base64_encode((string) $record->id);
                         $comp = url("/matricula/comprovante/{$encodedId}/d");
                         $msg = "MATRÍCULA CONFIRMADA\n\nProtocolo: {$record->protocolo}\nAluno: {$record->nome_candidato}\nEscola: {$escola}\nAno Letivo: {$record->ano_letivo}\nComprovante: {$comp}";
-                        return "https://web.whatsapp.com/send/?phone={$digits}&text=" . urlencode($msg);
+
+                        return "https://web.whatsapp.com/send/?phone={$digits}&text=".urlencode($msg);
                     })
                     ->openUrlInNewTab(),
                 Action::make('solicitarTransferencia')
@@ -342,7 +341,7 @@ class MatriculasTable
                     ])
                     ->action(function ($record, array $data): void {
                         $user = auth()->user();
-                        $toId = (int)$data['to_escola_id'];
+                        $toId = (int) $data['to_escola_id'];
 
                         $fromId = $record->escola_nome_id ?: 0;
                         $tr = TransferRequest::create([
@@ -358,7 +357,7 @@ class MatriculasTable
 
                         $destUsers = User::role('colegio')->where('escola_id', $toId)->get();
                         foreach ($destUsers as $u) {
-                            $u->notify(new NovaAutorizarTransferencia($tr));
+                            $u->notify(new AutorizarTransferenciaNotification($tr));
                         }
 
                         Notification::make()
@@ -371,9 +370,8 @@ class MatriculasTable
                     ->label('Autorizar Transferência')
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
-                    ->visible(fn ($record) => 
-                        $record->pedido_transferencia === 'Solicitada' &&
-                        (auth()->user()?->hasAnyRole(['super-admin', 'admin_edu']) || 
+                    ->visible(fn ($record) => $record->pedido_transferencia === 'Solicitada' &&
+                        (auth()->user()?->hasAnyRole(['super-admin', 'admin_edu']) ||
                         (auth()->user()?->hasRole('colegio') && TransferRequest::where('matricula_id', $record->id)->where('status', 'pending')->where('to_escola_id', auth()->user()->escola_id)->exists()))
                     )
                     ->action(function ($record): void {
@@ -382,8 +380,9 @@ class MatriculasTable
                             ->where('status', 'pending')
                             ->first();
 
-                        if (!$tr) {
+                        if (! $tr) {
                             Notification::make()->title('Erro')->body('Solicitação não encontrada.')->danger()->send();
+
                             return;
                         }
 
@@ -395,7 +394,7 @@ class MatriculasTable
                         $record->escola_nome_id = $tr->to_escola_id;
                         $record->pedido_transferencia = 'Transferida';
 
-                        if (!empty($record->turma_especie)) {
+                        if (! empty($record->turma_especie)) {
                             $tipo = \DB::table('turma_tipos')->where('tipo_descricao', $record->turma_especie)->first();
                             if ($tipo) {
                                 $novaTurma = Turma::where('turma_escola_id', $tr->to_escola_id)
@@ -427,9 +426,8 @@ class MatriculasTable
                     ->label('Recusar Transferência')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->visible(fn ($record) => 
-                        $record->pedido_transferencia === 'Solicitada' &&
-                        (auth()->user()?->hasAnyRole(['super-admin', 'admin_edu']) || 
+                    ->visible(fn ($record) => $record->pedido_transferencia === 'Solicitada' &&
+                        (auth()->user()?->hasAnyRole(['super-admin', 'admin_edu']) ||
                         (auth()->user()?->hasRole('colegio') && TransferRequest::where('matricula_id', $record->id)->where('status', 'pending')->where('to_escola_id', auth()->user()->escola_id)->exists()))
                     )
                     ->action(function ($record): void {
@@ -438,8 +436,9 @@ class MatriculasTable
                             ->where('status', 'pending')
                             ->first();
 
-                        if (!$tr) {
+                        if (! $tr) {
                             Notification::make()->title('Erro')->body('Solicitação não encontrada.')->danger()->send();
+
                             return;
                         }
 
@@ -524,8 +523,8 @@ class MatriculasTable
 
                                 if ($observacao) {
                                     $dataAtual = now()->format('d/m/Y H:i');
-                                    $novaObs = "[$dataAtual] Alteração de status em massa: " . $observacao;
-                                    $record->observacao = $record->observacao ? $record->observacao . "\n" . $novaObs : $novaObs;
+                                    $novaObs = "[$dataAtual] Alteração de status em massa: ".$observacao;
+                                    $record->observacao = $record->observacao ? $record->observacao."\n".$novaObs : $novaObs;
                                 }
 
                                 $record->save();
@@ -533,7 +532,7 @@ class MatriculasTable
 
                             Notification::make()
                                 ->title('Status atualizado com sucesso!')
-                                ->body($records->count() . ' registro(s) atualizado(s).')
+                                ->body($records->count().' registro(s) atualizado(s).')
                                 ->success()
                                 ->send();
                         }),
@@ -544,20 +543,21 @@ class MatriculasTable
                         ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'colegio', 'super-admin', 'admin_edu']))
                         ->action(function (Collection $records): void {
                             $matriculadoId = StatusMatricula::where('status_matricula', 'Matriculado')->value('id');
-                            if (!$matriculadoId) {
+                            if (! $matriculadoId) {
                                 Notification::make()->title('Erro')->body('Status "Matriculado" não encontrado.')->danger()->send();
+
                                 return;
                             }
 
                             foreach ($records as $record) {
                                 $record->situacao_matricula = $matriculadoId;
-                                auth()->user()?->notify(new NovaAbrirWhatsappMatricula($record));
+                                auth()->user()?->notify(new AbrirWhatsappMatriculaNotification($record));
                                 $record->save();
                             }
 
                             Notification::make()
                                 ->title('Matrículas confirmadas!')
-                                ->body($records->count() . ' registro(s) confirmado(s).')
+                                ->body($records->count().' registro(s) confirmado(s).')
                                 ->success()
                                 ->send();
                         }),
@@ -579,21 +579,21 @@ class MatriculasTable
                             }
 
                             Notification::make()
-                                 ->title('Matrícula(s) excluída(s) com sucesso!')
-                                 ->success()
-                                 ->send();
-                         }),
+                                ->title('Matrícula(s) excluída(s) com sucesso!')
+                                ->success()
+                                ->send();
+                        }),
                     BulkAction::make('exportarExcel')
                         ->label('Exportar para CSV')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('success')
                         ->action(function (Collection $records) {
-                            $filename = 'matriculas_' . now()->format('Y-m-d_H-i-s') . '.csv';
-                            
+                            $filename = 'matriculas_'.now()->format('Y-m-d_H-i-s').'.csv';
+
                             $response = new StreamedResponse(function () use ($records) {
                                 $csv = Writer::createFromPath('php://output', 'w+');
                                 $csv->setDelimiter(';');
-                                
+
                                 // Headings
                                 $csv->insertOne([
                                     'Protocolo',
@@ -602,7 +602,7 @@ class MatriculasTable
                                     'Vulnerável Social',
                                     'Portador de Deficiência',
                                 ]);
-                                
+
                                 foreach ($records as $record) {
                                     $csv->insertOne([
                                         $record->protocolo,
@@ -613,13 +613,13 @@ class MatriculasTable
                                     ]);
                                 }
                             });
-                            
+
                             $response->headers->set('Content-Type', 'text/csv');
-                            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-                            
+                            $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
+
                             return $response;
                         }),
-                      DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),

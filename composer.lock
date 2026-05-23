@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c43980bd2ad4c97d294d5e3112005403",
+    "content-hash": "649fe56351f24bbad81de4e5fe45e611",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6065,151 +6065,6 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.2"
             },
             "time": "2025-12-14T04:43:48+00:00"
-        },
-        {
-            "name": "rhylton/escolas",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "./nova-components/escolas",
-                "reference": "97814872131d57dd7fd06a5fe233bc28da9dc696"
-            },
-            "require": {
-                "php": "^7.3|^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Rhylton\\Escolas\\FieldServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Rhylton\\Escolas\\": "src/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "description": "A Laravel Nova field.",
-            "keywords": [
-                "laravel",
-                "nova"
-            ],
-            "transport-options": {
-                "relative": true
-            }
-        },
-        {
-            "name": "rhyltonn/soma-pontos-fields",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "./nova-components/soma-pontos-fields",
-                "reference": "6d5c004bce6bf5bdc2c4bfc0d070c1cc28dd402d"
-            },
-            "require": {
-                "php": "^7.3|^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Rhyltonn\\SomaPontosFields\\FieldServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Rhyltonn\\SomaPontosFields\\": "src/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "description": "A Laravel Nova field.",
-            "keywords": [
-                "laravel",
-                "nova"
-            ],
-            "transport-options": {
-                "relative": true
-            }
-        },
-        {
-            "name": "rhyltonn/turmas",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "./nova-components/turmas",
-                "reference": "e95f376eed37389a5dd5b913ee99139c3ca798cc"
-            },
-            "require": {
-                "php": "^7.3|^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Rhyltonn\\Turmas\\FieldServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Rhyltonn\\Turmas\\": "src/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "description": "A Laravel Nova field.",
-            "keywords": [
-                "laravel",
-                "nova"
-            ],
-            "transport-options": {
-                "relative": true
-            }
-        },
-        {
-            "name": "rhyltonn/vagas-xp-fields",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "./nova-components/VagasXpFields",
-                "reference": "56a6c23e9bd9c845ccfa3e7d47aa23f12bb7207e"
-            },
-            "require": {
-                "php": "^7.3|^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "nova": "LA93yK1DAqukjzR7GuUGRmmFh6iyulOz66TCwNUBVQKYYrPfgh",
-                    "providers": [
-                        "Rhyltonn\\VagasXpFields\\FieldServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Rhyltonn\\VagasXpFields\\": "src/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "description": "A Laravel Nova field.",
-            "keywords": [
-                "laravel",
-                "nova"
-            ],
-            "transport-options": {
-                "relative": true
-            }
         },
         {
             "name": "ryangjchandler/blade-capture-directive",
@@ -13302,12 +13157,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "rhylton/escolas": 20,
-        "rhyltonn/soma-pontos-fields": 20,
-        "rhyltonn/turmas": 20,
-        "rhyltonn/vagas-xp-fields": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

@@ -1,17 +1,25 @@
 <?php
 
-use App\Http\Controllers\MatriculaController;
-use App\Http\Controllers\Auth\ApiRegisterController;
 use App\Http\Controllers\Auth\ApiLoginController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\Auth\ApiRegisterController;
+use App\Http\Controllers\MatriculaController;
 use App\Http\Controllers\ProcessoSeletivoController;
 use App\Http\Controllers\StatusMatriculaController;
 use App\Http\Controllers\TransferController;
-use Illuminate\Support\Facades\Cache;
+use App\Models\Candidato;
+use App\Models\Distrito;
+use App\Models\Escola;
 use App\Models\Matricula;
 use App\Models\StatusMatricula;
+use App\Models\TipoDeficiencia;
+use App\Models\User;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,9 +34,9 @@ use App\Models\StatusMatricula;
 
 // Route::get('/', [ProcessoSeletivoController::class, 'index']);
 Route::get('/', function () {
-    $storage = \Illuminate\Support\Facades\Storage::disk('public');
+    $storage = Storage::disk('public');
 
-    $escolas = \App\Models\Escola::with(['bairro', 'distrito'])
+    $escolas = Escola::with(['bairro', 'distrito'])
         ->select('id', 'escola_nome', 'escola_endereco', 'escola_foto', 'escola_bairro_id', 'escola_distrito_id')
         ->get()
         ->map(function ($e) use ($storage) {
@@ -62,7 +70,7 @@ Route::get('/matricula', function () {
     return redirect('/pre-matricula');
 });
 
-  // formulario em vue js
+// formulario em vue js
 
 // Route::get('/matricula', [MatriculaController::class, 'index'])->name('matricula.2024');
 
@@ -77,8 +85,8 @@ Route::get(
 )->name('matricula.comprovante');
 
 Route::get('/pre-matricula', function () {
-    $distritos = \App\Models\Distrito::all();
-    $deficiencias = \App\Models\TipoDeficiencia::all();
+    $distritos = Distrito::all();
+    $deficiencias = TipoDeficiencia::all();
 
     $prefillName = '';
     $prefillEmail = '';
@@ -95,8 +103,8 @@ Route::get('/pre-matricula', function () {
 });
 
 Route::get('/inscritos', function () {
-    $distritos = \App\Models\Distrito::all();
-    $deficiencias = \App\Models\TipoDeficiencia::all();
+    $distritos = Distrito::all();
+    $deficiencias = TipoDeficiencia::all();
 
     $prefillName = '';
     $prefillEmail = '';
@@ -125,31 +133,31 @@ Route::get('/pre-matricula/sucesso/{id}', function ($id) {
 })->name('pre-matricula.sucesso');
 
 Route::get('/email-teste', function () {
-    $destinatarios = \App\Models\User::role('admin_edu')->pluck('email')->filter()->all();
+    $destinatarios = User::role('admin_edu')->pluck('email')->filter()->all();
     if (empty($destinatarios)) {
         return response()->json(['ok' => false, 'error' => 'Nenhum usuário admin_edu com e-mail cadastrado'], 400);
     }
     try {
         foreach ($destinatarios as $email) {
-            \Illuminate\Support\Facades\Mail::raw('Teste de e-mail do sistema de pré-matrícula.', function ($m) use ($email) {
+            Mail::raw('Teste de e-mail do sistema de pré-matrícula.', function ($m) use ($email) {
                 $m->to($email)->subject('Teste de e-mail - Pré-matrícula');
             });
         }
+
         return response()->json(['ok' => true, 'sent_to' => $destinatarios], 200);
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
     }
-})->middleware(['auth', 'can:viewNova']);
+})->middleware(['auth', 'can:accessAdminPanel']);
 
 // Route::get('/matricula', function () {
 //     return redirect()->away('https://mangaratiba.rj.gov.br/pre-matricula/comunicado.html');
 // })->name('matricula');
 
-
 // Route::post('/matricula', [MatriculaController::class, 'matricula'])->name('matricula.store');
 // Route::get('/matricula/comprovante/{id}/{tipo?}', [MatriculaController::class, 'comprovante'])->name('pre-matricula.comprovante');
 
-//Criar um redireionamento do /processo-seletivo para https://educacao.mangaratiba.rj.gov.br/processo-seletivo
+// Criar um redireionamento do /processo-seletivo para https://educacao.mangaratiba.rj.gov.br/processo-seletivo
 Route::get('/processo-seletivo', function () {
     return redirect()->away('https://mangaratiba.rj.gov.br/novoportal/processos-seletivos.php');
 })->name('processo-seletivo');
@@ -166,30 +174,32 @@ Route::post('/processo-seletivo/consulta', [ProcessoSeletivoController::class, '
 
 Route::get('/processo-seletivo/comprovante/{id}/{tipo?}', [ProcessoSeletivoController::class, 'comprovante'])->name('processo-seletivo.comprovante');
 
-
 Route::get('/manutencao', function () {
-    if (!Cache::get('modo_manutencao', false)) {
+    if (! Cache::get('modo_manutencao', false)) {
         return redirect('/');
     }
+
     return view('maintenance');
 })->name('manutencao');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/toggle-manutencao', function () {
-        if (!(auth()->user() && method_exists(auth()->user(), 'isSuperAdmin') && auth()->user()->isSuperAdmin())) {
+        if (! (auth()->user() && method_exists(auth()->user(), 'isSuperAdmin') && auth()->user()->isSuperAdmin())) {
             return redirect('/manutencao');
         }
         $ativo = Cache::get('modo_manutencao', false);
+
         return view('admin.maintenance-toggle', compact('ativo'));
     })->name('toggle-manutencao');
 
     Route::post('/toggle-manutencao', function () {
-        if (!(auth()->user() && method_exists(auth()->user(), 'isSuperAdmin') && auth()->user()->isSuperAdmin())) {
+        if (! (auth()->user() && method_exists(auth()->user(), 'isSuperAdmin') && auth()->user()->isSuperAdmin())) {
             return redirect('/manutencao');
         }
         $ativo = request()->has('ativo');
         Cache::forever('modo_manutencao', $ativo);
-        return redirect()->route('toggle-manutencao')->with('status', 'Modo manutenção ' . ($ativo ? 'ativado' : 'desativado') . '!');
+
+        return redirect()->route('toggle-manutencao')->with('status', 'Modo manutenção '.($ativo ? 'ativado' : 'desativado').'!');
     });
 });
 
@@ -207,11 +217,12 @@ Route::post('/register', function () {
         'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
         'password' => ['required', 'string', 'min:6', 'confirmed'],
     ]);
-    $user = \App\Models\User::create([
+    $user = User::create([
         'name' => $data['name'],
         'email' => $data['email'],
         'password' => bcrypt($data['password']),
     ]);
+
     return redirect('/login');
 });
 
@@ -226,25 +237,24 @@ Route::post('/register/pre-matricula', function () {
         'nome' => ['required', 'string', 'max:255'],
         'cpf' => ['required', 'size:11', 'unique:candidatos,cpf'],
     ]);
-    $candidato = \App\Models\Candidato::create([
+    $candidato = Candidato::create([
         'nome' => $data['nome'],
         'cpf' => $data['cpf'],
         'local' => 'Mangaratiba',
     ]);
-    return redirect()->route('register.pre-matricula')->with('status', 'Pré-matrícula criada com sucesso. Protocolo: ' . $candidato->id);
+
+    return redirect()->route('register.pre-matricula')->with('status', 'Pré-matrícula criada com sucesso. Protocolo: '.$candidato->id);
 });
-
-
 
 // Rotas de Autentica��o API (Consumindo Projeto A)
 Route::get('/api/register', [ApiRegisterController::class, 'create'])->name('apiregister');
 Route::post('/api/register', [ApiRegisterController::class, 'store'])->name('apiregister.store');
-//login api pia
+// login api pia
 Route::get('/api/login', [ApiLoginController::class, 'create'])->name('register.login');
 Route::post('/api/login', [ApiLoginController::class, 'store'])->name('register.login.store');
 Route::post('/api/logout', [ApiLoginController::class, 'destroy'])->name('api.logout');
 
-//status da pre-matricula
+// status da pre-matricula
 // Route::get('pre-matricula/status', function () {
 //     $matricula = null;
 
@@ -280,7 +290,7 @@ Route::post('pre-matricula/confirmar/{id}', [StatusMatriculaController::class, '
 Route::get('pre-matricula/confirmar/{id}', [StatusMatriculaController::class, 'confirmar'])->middleware('signed')->name('pre-matricula.confirmar.get');
 Route::post('pre-matricula/enviar-whatsapp/{id}', [StatusMatriculaController::class, 'enviarWhatsapp'])->name('pre-matricula.enviar_whatsapp');
 Route::get('pre-matricula/testar-whatsapp/{id}', [StatusMatriculaController::class, 'testarWhatsapp'])
-    ->middleware(['auth', 'can:viewNova'])
+    ->middleware(['auth', 'can:accessAdminPanel'])
     ->name('pre-matricula.testar_whatsapp');
 Route::get('pre-matricula/abrir-whatsapp/{id}', [StatusMatriculaController::class, 'abrirWhatsapp'])->name('pre-matricula.abrir_whatsapp');
 Route::get('api/matricula/status/{protocolo}', [StatusMatriculaController::class, 'apiStatusByProtocol'])->name('api.matricula.status');
@@ -289,12 +299,12 @@ Route::get('transfer/approve/{id}', [TransferController::class, 'approve'])->mid
 Route::get('transfer/reject/{id}', [TransferController::class, 'reject'])->middleware('signed')->name('transfer.reject');
 
 // Alias acessível dentro do Nova (/admin) para evitar 404 no SPA
-Route::middleware(['auth', 'can:viewNova'])->group(function () {
+Route::middleware(['auth', 'can:accessAdminPanel'])->group(function () {
     Route::get('/admin/transfer/approve/{id}', function ($id) {
-        return redirect(\Illuminate\Support\Facades\URL::signedRoute('transfer.approve', ['id' => $id]));
+        return redirect(URL::signedRoute('transfer.approve', ['id' => $id]));
     })->name('admin.transfer.approve');
     Route::get('/admin/transfer/reject/{id}', function ($id) {
-        return redirect(\Illuminate\Support\Facades\URL::signedRoute('transfer.reject', ['id' => $id]));
+        return redirect(URL::signedRoute('transfer.reject', ['id' => $id]));
     })->name('admin.transfer.reject');
     Route::get('/admin/transfer/approve-direct/{id}', [TransferController::class, 'approveDirect'])->name('admin.transfer.approve-direct');
     Route::get('/admin/transfer/reject-direct/{id}', [TransferController::class, 'rejectDirect'])->name('admin.transfer.reject-direct');

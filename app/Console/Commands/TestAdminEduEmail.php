@@ -2,115 +2,136 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Matricula;
+use App\Models\User;
+use App\Notifications\MatriculaCriadaNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
-use App\Models\User;
-use App\Models\Matricula;
-use App\Notifications\NovaMatriculaCriada;
 
 class TestAdminEduEmail extends Command
 {
-    protected $signature = 'notify:test {email?} {--raw} {--nova} {--show}';
-    protected $description = 'Envia e-mail de teste para usuários admin_edu. Opcional: email específico, --raw, --nova';
+    protected $signature = 'notify:test {email?} {--raw} {--database} {--show}';
 
-    public function handle()
+    protected $description = 'Envia e-mail de teste para usuarios admin_edu. Opcional: email especifico, --raw, --database';
+
+    public function handle(): int
     {
         $emailArg = $this->argument('email');
         $useRaw = $this->option('raw');
-        $useNova = $this->option('nova');
+        $useDatabase = $this->option('database');
         $showOnly = $this->option('show');
-        if (!$useRaw && !$useNova) {
+
+        if (! $useRaw && ! $useDatabase) {
             $useRaw = true;
         }
+
         $users = collect();
+
         if ($emailArg) {
             $needle = strtolower(trim($emailArg));
-            $u = User::whereRaw('LOWER(email) = ?', [$needle])->first();
-            if (!$u) {
-                $u = User::where('email', 'like', "%{$needle}%")->first();
+            $user = User::whereRaw('LOWER(email) = ?', [$needle])->first();
+
+            if (! $user) {
+                $user = User::where('email', 'like', "%{$needle}%")->first();
             }
-            if ($u) {
-                if (!$u->hasRole('admin_edu')) {
-                    $this->warn("Usuário {$emailArg} não possui role admin_edu. Enviarei mesmo assim para teste.");
+
+            if ($user) {
+                if (! $user->hasRole('admin_edu')) {
+                    $this->warn("Usuario {$emailArg} nao possui role admin_edu. Enviarei mesmo assim para teste.");
                 }
-                if (!empty($u->email)) {
-                    $this->info("Usuário localizado: ID {$u->id}, e-mail {$u->email}");
-                    $users = collect([$u]);
+
+                if (! empty($user->email)) {
+                    $this->info("Usuario localizado: ID {$user->id}, e-mail {$user->email}");
+                    $users = collect([$user]);
                 }
             } else {
-                $this->warn("Usuário {$emailArg} não encontrado no sistema. Tentando envio direto para o e-mail informado.");
+                $this->warn("Usuario {$emailArg} nao encontrado no sistema. Tentando envio direto para o e-mail informado.");
             }
         }
-        if ($users->isEmpty() && !$emailArg) {
-            $users = User::role('admin_edu')->get()->filter(function ($u) {
-                return !empty($u->email);
-            });
+
+        if ($users->isEmpty() && ! $emailArg) {
+            $users = User::role('admin_edu')->get()->filter(fn ($user) => ! empty($user->email));
         }
+
         if ($showOnly) {
             if ($emailArg) {
-                $this->info('Busca por e-mail: ' . $emailArg);
+                $this->info('Busca por e-mail: '.$emailArg);
             }
+
             if ($users->isEmpty()) {
-                $this->warn('Nenhum usuário encontrado no critério informado.');
+                $this->warn('Nenhum usuario encontrado no criterio informado.');
             } else {
-                foreach ($users as $u) {
-                    $this->line('ID ' . $u->id . ' | ' . $u->email . ' | roles: ' . implode(',', $u->getRoleNames()->toArray()));
+                foreach ($users as $user) {
+                    $this->line('ID '.$user->id.' | '.$user->email.' | roles: '.implode(',', $user->getRoleNames()->toArray()));
                 }
             }
+
             return Command::SUCCESS;
         }
+
         if ($users->isEmpty() && $emailArg && $useRaw) {
             try {
-                $texto = "Teste de e-mail do sistema de pré-matrícula.\n";
-                Mail::raw($texto, function ($m) use ($emailArg) {
-                    $m->to($emailArg)->subject('Teste de e-mail - Pré-matrícula');
+                Mail::raw("Teste de e-mail do sistema de pre-matricula.\n", function ($message) use ($emailArg): void {
+                    $message->to($emailArg)->subject('Teste de e-mail - Pre-matricula');
                 });
-                $this->info("Enviado diretamente para {$emailArg} (sem usuário).");
+
+                $this->info("Enviado diretamente para {$emailArg} (sem usuario).");
+
                 return Command::SUCCESS;
             } catch (\Throwable $e) {
                 $this->error("Falha ao enviar diretamente para {$emailArg}: {$e->getMessage()}");
+
                 return Command::FAILURE;
             }
         }
+
         if ($users->isEmpty()) {
-            $this->error('Nenhum usuário admin_edu com e-mail encontrado para enviar.');
+            $this->error('Nenhum usuario admin_edu com e-mail encontrado para enviar.');
+
             return Command::FAILURE;
         }
+
         $matricula = Matricula::latest()->first();
         $sent = [];
         $failed = [];
+
         foreach ($users as $user) {
             try {
                 if ($useRaw) {
                     $encodedId = $matricula ? base64_encode((string) $matricula->id) : null;
-                    $dl = $encodedId ? url("/matricula/comprovante/{$encodedId}/d") : null;
-                    $pr = $encodedId ? url("/matricula/comprovante/{$encodedId}/p") : null;
-                    $urlNova = $matricula ? url("/nova/resources/matriculas/{$matricula->id}") : null;
-                    $texto = "Teste de e-mail do sistema de pré-matrícula.\n";
+                    $downloadUrl = $encodedId ? url("/matricula/comprovante/{$encodedId}/d") : null;
+                    $printUrl = $encodedId ? url("/matricula/comprovante/{$encodedId}/p") : null;
+                    $adminUrl = $matricula ? url("/admin/matriculas/{$matricula->id}") : null;
+                    $text = "Teste de e-mail do sistema de pre-matricula.\n";
+
                     if ($matricula) {
-                        $texto .= "Matrícula exemplo: {$matricula->id}\n";
-                        $texto .= "Ver Matrícula: {$urlNova}\n";
-                        $texto .= "Baixar comprovante: {$dl}\n";
-                        $texto .= "Imprimir comprovante: {$pr}\n";
+                        $text .= "Matricula exemplo: {$matricula->id}\n";
+                        $text .= "Ver Matricula: {$adminUrl}\n";
+                        $text .= "Baixar comprovante: {$downloadUrl}\n";
+                        $text .= "Imprimir comprovante: {$printUrl}\n";
                     }
-                    Mail::raw($texto, function ($m) use ($user) {
-                        $m->to($user->email)->subject('Teste de e-mail - Pré-matrícula');
+
+                    Mail::raw($text, function ($message) use ($user): void {
+                        $message->to($user->email)->subject('Teste de e-mail - Pre-matricula');
                     });
                 }
-                if ($useNova && $matricula) {
-                    $user->notify(new NovaMatriculaCriada($matricula));
+
+                if ($useDatabase && $matricula) {
+                    $user->notify(new MatriculaCriadaNotification($matricula));
                 }
+
                 $sent[] = $user->email;
             } catch (\Throwable $e) {
                 $failed[] = ['email' => $user->email, 'error' => $e->getMessage()];
             }
         }
-        $this->info('Enviados: ' . implode(', ', $sent));
-        if (!empty($failed)) {
-            foreach ($failed as $f) {
-                $this->error("Falha: {$f['email']} => {$f['error']}");
-            }
+
+        $this->info('Enviados: '.implode(', ', $sent));
+
+        foreach ($failed as $failure) {
+            $this->error("Falha: {$failure['email']} => {$failure['error']}");
         }
+
         return Command::SUCCESS;
     }
 }
