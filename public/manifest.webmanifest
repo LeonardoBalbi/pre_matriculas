@@ -1,0 +1,69 @@
+{
+    "name": "Pre-matricula Mangaratiba",
+    "short_name": "Pre-matricula",
+    "description": "Sistema de pre-matricula da Prefeitura de Mangaratiba.",
+    "id": "/?pwa=pre-matricula",
+    "start_url": "/?utm_source=pwa",
+    "scope": "/",
+    "display": "standalone",
+    "display_override": [
+        "standalone",
+        "minimal-ui",
+        "browser"
+    ],
+    "orientation": "portrait-primary",
+    "background_color": "#f5f8fc",
+    "theme_color": "#145ab8",
+    "lang": "pt-BR",
+    "dir": "ltr",
+    "categories": [
+        "education",
+        "government"
+    ],
+    "icons": [
+        {
+            "src": "/icons/pwa-icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/pwa-icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/pwa-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Fazer pre-matricula",
+            "short_name": "Inscricao",
+            "url": "/pre-matricula",
+            "icons": [
+                {
+                    "src": "/icons/pwa-icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Consultar status",
+            "short_name": "Status",
+            "url": "/pre-matricula/status",
+            "icons": [
+                {
+                    "src": "/icons/pwa-icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ]
+}

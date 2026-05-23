@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registro</title>
+    @include('partials.pwa')
     <link rel="stylesheet" type="text/css" href="{{Request::root()}}/bt/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{{Request::root()}}/bt/css/util.css">
     <link rel="stylesheet" type="text/css" href="{{Request::root()}}/bt/css/main.css">
@@ -81,4 +82,3 @@
     <script src="{{Request::root()}}/bt/js/main.js"></script>
 </body>
 </html>
-

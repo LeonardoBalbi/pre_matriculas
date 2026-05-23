@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alternar Manutenção</title>
+    @include('partials.pwa')
     <style>
         body { display: flex; align-items: center; justify-content: center; height: 100vh; background: #f8fafc; }
         .box { text-align: center; background: #fff; padding: 40px 60px; border-radius: 10px; box-shadow: 0 2px 8px #0001; }

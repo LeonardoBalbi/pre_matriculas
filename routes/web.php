@@ -298,7 +298,7 @@ Route::get('api/matricula/status/{protocolo}', [StatusMatriculaController::class
 Route::get('transfer/approve/{id}', [TransferController::class, 'approve'])->middleware('signed')->name('transfer.approve');
 Route::get('transfer/reject/{id}', [TransferController::class, 'reject'])->middleware('signed')->name('transfer.reject');
 
-// Alias acessível dentro do Nova (/admin) para evitar 404 no SPA
+// Rotas auxiliares do painel Filament.
 Route::middleware(['auth', 'can:accessAdminPanel'])->group(function () {
     Route::get('/admin/transfer/approve/{id}', function ($id) {
         return redirect(URL::signedRoute('transfer.approve', ['id' => $id]));

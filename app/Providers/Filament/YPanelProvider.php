@@ -10,6 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -29,6 +30,10 @@ class YPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => view('partials.pwa')->render(),
+            )
             ->discoverResources(in: app_path('Filament/Y/Resources'), for: 'App\Filament\Y\Resources')
             ->discoverPages(in: app_path('Filament/Y/Pages'), for: 'App\Filament\Y\Pages')
             ->pages([

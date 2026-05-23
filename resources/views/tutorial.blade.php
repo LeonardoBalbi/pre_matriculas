@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tutorial de Inscrição</title>
+    @include('partials.pwa')
     <link rel="stylesheet" href="{{ Request::root() }}/bt/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ Request::root() }}/bt/css/main.css">
     <style>
