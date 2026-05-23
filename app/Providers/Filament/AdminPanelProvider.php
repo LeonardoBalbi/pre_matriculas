@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Admin\Pages\Auth\Login as AdminLogin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -28,13 +29,25 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(AdminLogin::class)
+            ->brandName('PMM - SME')
+            ->brandLogo('/img/logo_governo_azul.png')
+            ->brandLogoHeight('3.25rem')
+            ->favicon('/icons/pwa-icon-192.png')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => view('partials.pwa')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::STYLES_AFTER,
+                fn (): string => view('partials.filament-login-theme')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_LAYOUT_START,
+                fn (): string => view('partials.filament-login-hero')->render(),
             )
             ->databaseNotifications()
             ->databaseNotificationsPolling('15s')

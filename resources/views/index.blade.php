@@ -19,6 +19,7 @@
                 <a href="#unidades">Unidades</a>
                 <a href="#publicacao">Publicacao</a>
                 <a href="{{ route('register.pre-matricula.status') }}">Area do candidato</a>
+                <a class="btn btn-outline-light nav-admin" href="{{ url('/admin') }}">Area administrativa</a>
                 <a class="btn btn-light nav-cta" href="/pre-matricula">Fazer inscricao</a>
             </div>
         </div>
@@ -35,6 +36,7 @@
                 <div class="hero-actions">
                     <a class="btn btn-primary btn-lg" href="/pre-matricula">Iniciar pre-matricula</a>
                     <a class="btn btn-outline-light btn-lg" href="{{ route('register.pre-matricula.status') }}">Acompanhar inscricao</a>
+                    <a class="btn btn-light btn-lg" href="{{ url('/admin') }}">Area administrativa</a>
                 </div>
             </div>
             <div class="hero-panel">
@@ -201,7 +203,10 @@
                 <strong>Secretaria Municipal de Educacao</strong>
                 <span>Praca Robert Simoes, nº 92 - Mangaratiba - RJ</span>
             </div>
-            <a href="/pre-matricula" class="btn btn-light">Fazer inscricao</a>
+            <div class="footer-actions">
+                <a href="{{ url('/admin') }}" class="btn btn-outline-light">Area administrativa</a>
+                <a href="/pre-matricula" class="btn btn-light">Fazer inscricao</a>
+            </div>
         </div>
     </footer>
 </div>
@@ -370,9 +375,22 @@
         color: #fff;
     }
 
+    .nav-admin,
     .nav-cta {
         font-weight: 800;
         border-radius: 8px;
+        white-space: nowrap;
+    }
+
+    .nav-admin {
+        color: #fff;
+        border-color: rgba(255,255,255,.62);
+    }
+
+    .nav-admin:hover {
+        color: var(--primary-dark);
+        background: #fff;
+        border-color: #fff;
     }
 
     .hero {
@@ -704,6 +722,13 @@
         color: rgba(255,255,255,.78);
     }
 
+    .footer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: .75rem;
+    }
+
     @media (max-width: 991px) {
         .footer-inner {
             flex-direction: column;
@@ -738,6 +763,7 @@
             white-space: nowrap;
         }
 
+        .nav-admin,
         .nav-cta {
             white-space: nowrap;
         }
@@ -778,6 +804,14 @@
         }
 
         .hero-actions .btn {
+            width: 100%;
+        }
+
+        .footer-actions {
+            justify-content: stretch;
+        }
+
+        .footer-actions .btn {
             width: 100%;
         }
 
