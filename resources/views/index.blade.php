@@ -12,7 +12,7 @@
     <nav class="home-nav">
         <div class="container nav-inner">
             <a class="brand-link" href="{{ url('/') }}" aria-label="Inicio">
-                <img src="/img/smeel-branco2.png" onerror="this.src='/img/smeel-branco.png'" alt="Secretaria de Educacao">
+                <img src="/img/logo_governo_azul.png" onerror="this.src='/img/brasao-pmm-smeel-black.png'" alt="Prefeitura de Mangaratiba">
             </a>
             <div class="nav-links">
                 <a href="#etapas">Etapas</a>
@@ -303,8 +303,9 @@
         --line: #d8e0ea;
         --surface: #ffffff;
         --soft: #f5f8fc;
-        --primary: #0f6cbd;
-        --primary-dark: #084f8f;
+        --primary: #145ab8;
+        --primary-dark: #083f86;
+        --accent: #00a3d7;
         --success: #147d64;
     }
 
@@ -327,8 +328,9 @@
         position: sticky;
         top: 0;
         z-index: 50;
-        background: rgba(8, 36, 70, .96);
+        background: linear-gradient(90deg, rgba(3, 44, 91, .98) 0%, rgba(8, 63, 134, .98) 54%, rgba(20, 90, 184, .98) 100%);
         border-bottom: 1px solid rgba(255,255,255,.16);
+        box-shadow: 0 10px 34px rgba(3, 44, 91, .22);
     }
 
     .nav-inner {
@@ -340,8 +342,15 @@
     }
 
     .brand-link img {
-        height: 54px;
+        height: 58px;
         width: auto;
+        filter: brightness(0) invert(1);
+        transition: transform .18s ease, opacity .18s ease;
+    }
+
+    .brand-link:hover img {
+        transform: translateY(-1px);
+        opacity: .92;
     }
 
     .nav-links {
@@ -372,7 +381,7 @@
         display: flex;
         align-items: center;
         overflow: hidden;
-        background: #082446;
+        background: #032c5b;
     }
 
     .hero-image,
@@ -388,7 +397,7 @@
     }
 
     .hero-shade {
-        background: linear-gradient(90deg, rgba(8,36,70,.92) 0%, rgba(8,36,70,.72) 48%, rgba(8,36,70,.24) 100%);
+        background: linear-gradient(90deg, rgba(3,44,91,.94) 0%, rgba(8,63,134,.74) 48%, rgba(0,163,215,.24) 100%);
     }
 
     .hero-content {
@@ -409,7 +418,7 @@
     .eyebrow,
     .section-kicker {
         display: inline-block;
-        color: #6ee7b7;
+        color: #9ee7ff;
         font-size: .82rem;
         font-weight: 900;
         letter-spacing: .08em;
@@ -583,8 +592,8 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: #e9f8f3;
-        color: var(--success);
+        background: #e8f4ff;
+        color: var(--primary);
         font-weight: 900;
         margin-bottom: .75rem;
     }
@@ -678,7 +687,7 @@
     }
 
     .home-footer {
-        background: #082446;
+        background: linear-gradient(90deg, #032c5b 0%, #083f86 55%, #145ab8 100%);
         color: #fff;
         padding: 1.25rem 0;
     }
@@ -707,7 +716,9 @@
         }
 
         .brand-link img {
-            height: 44px;
+            height: 46px;
+            max-width: 150px;
+            object-fit: contain;
         }
 
         .nav-links {
